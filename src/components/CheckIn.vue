@@ -16,7 +16,7 @@
               <v-text-field
                 id="query"
                 v-model="query"
-                label="Suche ..."
+                label="Liste filtern (z.B. Name, Uhrzeit, ja, nein, ...)"
                 hide-details="auto"
               />
             </td>
@@ -53,7 +53,10 @@ const filter = computed(() => {
   if (query.value) {
     childrenFiltered.value = children.filter(
       (child) =>
-        child.img.toLowerCase().indexOf(query.value.toLowerCase()) !== -1
+        child.img.toLowerCase().indexOf(query.value.toLowerCase()) !== -1 ||
+        child.regularTime.indexOf(query.value) !== -1 ||
+        ("nein".indexOf(query.value) !== -1 && !child.checkedIn) ||
+        ("ja".indexOf(query.value) !== -1 && child.checkedIn)
     );
   }
   return childrenFiltered.value;
