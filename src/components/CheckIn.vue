@@ -48,7 +48,10 @@ onBeforeUnmount(() => {
 const checkLastChildVisibility = () => {
   const container = document.querySelector(".scroll") as HTMLElement;
   const child = document.querySelector(".child:last-child") as HTMLElement;
-  lastChildIsVisible.value = container.scrollTop > child.scrollHeight;
+
+  lastChildIsVisible.value =
+    container.scrollTop >
+    child.scrollHeight * children.value.length - container.offsetHeight;
 };
 
 interface IChild {
