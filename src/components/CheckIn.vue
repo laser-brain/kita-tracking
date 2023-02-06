@@ -51,12 +51,13 @@ const filter = computed(() => {
   childrenFiltered.value = children;
 
   if (query.value) {
+    const formatted = query.value.trim();
     childrenFiltered.value = children.filter(
       (child) =>
-        child.img.toLowerCase().indexOf(query.value.toLowerCase()) !== -1 ||
-        child.regularTime.indexOf(query.value) !== -1 ||
-        ("nein".indexOf(query.value) !== -1 && !child.checkedIn) ||
-        ("ja".indexOf(query.value) !== -1 && child.checkedIn)
+        child.img.toLowerCase().indexOf(formatted.toLowerCase()) !== -1 ||
+        child.regularTime.indexOf(formatted) !== -1 ||
+        ("nein".indexOf(formatted) !== -1 && !child.checkedIn) ||
+        ("ja".indexOf(formatted) !== -1 && child.checkedIn)
     );
   }
   return childrenFiltered.value;
@@ -68,6 +69,9 @@ onMounted(() => {
   document
     .querySelector("#query")
     ?.addEventListener("keyup", checkLastChildVisibility);
+  document
+    .querySelector("#query")
+    ?.addEventListener("focus", checkLastChildVisibility);
   const child = document.querySelector(".child:last-child") as HTMLElement;
 
   if (!child) {
@@ -81,13 +85,19 @@ onMounted(() => {
 onBeforeUnmount(() => {
   const container = document.querySelector(".scroll") as HTMLElement;
   container.removeEventListener("scroll", checkLastChildVisibility);
+  document
+    .querySelector("#query")
+    ?.removeEventListener("keyup", checkLastChildVisibility);
+  document
+    .querySelector("#query")
+    ?.removeEventListener("focus", checkLastChildVisibility);
 });
 const checkLastChildVisibility = () => {
   const container = document.querySelector(".scroll") as HTMLElement;
   const child = document.querySelector(".child:last-child") as HTMLElement;
 
   if (!child) {
-    lastChildIsVisible.value = false;
+    lastChildIsVisible.value = true;
     return;
   }
   lastChildIsVisible.value =
