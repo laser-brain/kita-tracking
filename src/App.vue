@@ -63,7 +63,7 @@ $greeting-dist-top: 16vh;
   position: relative;
   width: 100%;
   height: auto;
-  max-height: calc(
+  height: calc(
     100vh -
       (
         8vh + 1.28em + $nav-btn-padding-vertical * 2 + $nav-btn-border * 2 +
