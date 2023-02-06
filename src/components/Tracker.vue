@@ -4,15 +4,13 @@
     <div class="timer">
       <span>{{ trackedTimeFormatted || "00:00:00" }}</span>
     </div>
-    <div :class="`btn ${running ? 'pause' : 'play'}`" @click="toggle">
-      <span class="bar bar-1"></span>
-      <span class="bar bar-2"></span>
-    </div>
+    <PlayButton :running="running" @click="toggle" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, Ref, ref } from "vue";
+import PlayButton from "./PlayButton.vue";
 import ToggleMenu from "./ToggleMenu.vue";
 
 interface ITrackingData {
