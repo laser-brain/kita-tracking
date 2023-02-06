@@ -5,6 +5,13 @@
       <span>{{ trackedTimeFormatted || "00:00:00" }}</span>
     </div>
     <PlayButton :running="running" @click="toggle" />
+    <ToggleMenu
+      :data="trackedSegments"
+      @init="createBackup"
+      @finalize="destroyBackup"
+      @delete="removeItem"
+      @restore="restoreItem"
+    />
   </div>
 </template>
 
@@ -18,6 +25,25 @@ interface ITrackingData {
   startTime: Date | null;
   trackedSegments: Date[];
 }
+
+const segmentsBackup: Date[] = [];
+
+const createBackup = () => {
+  segmentsBackup.push(...trackedSegments.value);
+};
+
+const destroyBackup = () => {
+  segmentsBackup.splice(0, segmentsBackup.length);
+};
+
+const removeItem = (index: number) => {
+  trackedSegments.value.splice(index, 1);
+};
+
+const restoreItem = (index: number) => {
+  const item = segmentsBackup[index];
+  trackedSegments.value.splice(index, 0, item);
+};
 
 const getMidnight = (date?: Date): Date => {
   const result = date ? new Date(date) : new Date();
@@ -33,8 +59,6 @@ const loadFromLocal = (): ITrackingData => {
     localStorage.getItem("tracker-data") ??
       '{"running":false,"startTime":null,"trackedSegments":[]}'
   ) as ITrackingData;
-
-  console.log(props);
 
   if (!props.startTime) {
     return props;
@@ -57,11 +81,12 @@ const props = loadFromLocal();
 
 const running = ref(props.running);
 const startTime: Ref<Date | null> = ref(props.startTime);
-const trackedSegments: Date[] =
-  props.trackedSegments.map((seg) => new Date(seg)) || [];
+const trackedSegments: Ref<Date[]> = ref(
+  props.trackedSegments.map((seg) => new Date(seg)) || []
+);
 const trackedTime: Ref<Date | null> = ref(null);
 const trackedTimeFormatted = computed(() => {
-  let trackedToday = trackedSegments.reduce((prev, current) => {
+  let trackedToday = trackedSegments.value.reduce((prev, current) => {
     if (!current) {
       return prev;
     }
@@ -89,7 +114,8 @@ const toggle = () => {
   if (running.value) {
     startTime.value = new Date();
   } else if (trackedTime.value) {
-    trackedSegments.push(trackedTime.value);
+    trackedSegments.value.push(trackedTime.value);
+    trackedTime.value = null;
   }
 };
 
@@ -103,7 +129,7 @@ window.setInterval(() => {
   const props: ITrackingData = {
     running: running.value,
     startTime: startTime.value,
-    trackedSegments,
+    trackedSegments: trackedSegments.value,
   };
   localStorage.setItem("tracker-data", JSON.stringify(props));
 }, 1000);
