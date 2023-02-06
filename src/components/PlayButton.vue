@@ -11,6 +11,8 @@ defineProps<IVisibility>();
 .toggle-btn {
   width: 100px;
   height: 100px;
+  min-height: 100px;
+  min-width: 100px;
   border-radius: 50%;
   position: relative;
   display: block;
