@@ -16,7 +16,6 @@ defineProps<IVisibility>();
   border-radius: 50%;
   position: relative;
   display: block;
-  margin: 100px auto;
   &.play {
     background: radial-gradient(
       rgba(0, 128, 0, 0.8) 60%,

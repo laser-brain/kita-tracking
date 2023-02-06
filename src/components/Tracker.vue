@@ -4,7 +4,6 @@
     <div class="timer">
       <span>{{ trackedTimeFormatted || "00:00:00" }}</span>
     </div>
-    <PlayButton :running="running" @click="toggle" />
     <ToggleMenu
       :data="trackedSegments"
       @init="createBackup"
@@ -12,6 +11,7 @@
       @delete="removeItem"
       @restore="restoreItem"
     />
+    <PlayButton :running="running" @click="toggle" />
   </div>
 </template>
 
@@ -137,10 +137,11 @@ window.setInterval(() => {
 
 <style scoped lang="scss">
 .container {
-  justify-content: center;
+  justify-content: space-around;
 }
 .timer {
   display: flex;
+  margin-bottom: -128px;
   flex-direction: column;
   align-items: center;
 
