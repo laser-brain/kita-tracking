@@ -28,6 +28,8 @@ body,
 
 .v-application {
   width: 100%;
+  height: auto;
+  max-height: 100vh;
 }
 
 $nav-dist: 16px;
@@ -60,7 +62,14 @@ $greeting-dist-top: 16vh;
 .container {
   position: relative;
   width: 100%;
-  height: 100%;
+  height: auto;
+  max-height: calc(
+    100vh -
+      (
+        8vh + 1.28em + $nav-btn-padding-vertical * 2 + $nav-btn-border * 2 +
+          $nav-dist * 2 + 30px
+      )
+  );
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
@@ -69,15 +78,17 @@ $greeting-dist-top: 16vh;
 
 .greeting {
   font-size: 1.28em;
-  margin-top: 16vh;
+  margin-top: 8vh;
   text-align: center;
 }
 
 #app {
   width: 100vw;
-  min-height: 100vh;
+  height: 100%;
+  max-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
+  overflow-y: auto;
 }
 </style>

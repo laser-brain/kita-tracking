@@ -120,6 +120,36 @@ const children: Ref<IChild[]> = ref([
     regularTime: "08:30 - 15:30 (7h)",
     checkedIn: true,
   },
+  {
+    img: "Biene",
+    regularTime: "08:30 - 15:30 (7h)",
+    checkedIn: false,
+  },
+  {
+    img: "Hase",
+    regularTime: "08:30 - 15:30 (7h)",
+    checkedIn: true,
+  },
+  {
+    img: "Maus",
+    regularTime: "08:30 - 15:30 (7h)",
+    checkedIn: true,
+  },
+  {
+    img: "Biene",
+    regularTime: "08:30 - 15:30 (7h)",
+    checkedIn: false,
+  },
+  {
+    img: "Hase",
+    regularTime: "08:30 - 15:30 (7h)",
+    checkedIn: true,
+  },
+  {
+    img: "Maus",
+    regularTime: "08:30 - 15:30 (7h)",
+    checkedIn: true,
+  },
 ]);
 
 const checkinClass = (child: IChild) => {
@@ -127,14 +157,9 @@ const checkinClass = (child: IChild) => {
 };
 </script>
 <style scoped lang="scss">
-.container {
-  padding-top: 64px;
-  margin-bottom: 32px;
-}
 .scroll {
   margin-top: 32px;
   overflow: auto;
-  max-height: 500px;
   position: relative;
   width: 96%;
   &.overflow {
