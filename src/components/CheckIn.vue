@@ -11,7 +11,17 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="child in children" :class="`child ${checkinClass(child)}`">
+          <tr>
+            <td colspan="3" class="query-row">
+              <v-text-field
+                id="query"
+                v-model="query"
+                label="Suche ..."
+                hide-details="auto"
+              />
+            </td>
+          </tr>
+          <tr v-for="child in filter" :class="`child ${checkinClass(child)}`">
             <td>{{ child.img }}</td>
             <td>{{ child.regularTime }}</td>
             <td>
@@ -33,13 +43,37 @@
   </div>
 </template>
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, Ref, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, Ref, ref } from "vue";
 
+const query: Ref<string> = ref("");
+const childrenFiltered: Ref<IChild[]> = ref([]);
+const filter = computed(() => {
+  childrenFiltered.value = children;
+
+  if (query.value) {
+    childrenFiltered.value = children.filter(
+      (child) =>
+        child.img.toLowerCase().indexOf(query.value.toLowerCase()) !== -1
+    );
+  }
+  return childrenFiltered.value;
+});
 const lastChildIsVisible = ref(false);
 onMounted(() => {
   const container = document.querySelector(".scroll") as HTMLElement;
-  lastChildIsVisible.value = container.offsetHeight > container.scrollHeight;
   container.addEventListener("scroll", checkLastChildVisibility);
+  document
+    .querySelector("#query")
+    ?.addEventListener("keyup", checkLastChildVisibility);
+  const child = document.querySelector(".child:last-child") as HTMLElement;
+
+  if (!child) {
+    lastChildIsVisible.value = false;
+    return;
+  }
+  lastChildIsVisible.value =
+    container.scrollTop >
+    child.scrollHeight * childrenFiltered.value.length - container.offsetHeight;
 });
 onBeforeUnmount(() => {
   const container = document.querySelector(".scroll") as HTMLElement;
@@ -49,9 +83,13 @@ const checkLastChildVisibility = () => {
   const container = document.querySelector(".scroll") as HTMLElement;
   const child = document.querySelector(".child:last-child") as HTMLElement;
 
+  if (!child) {
+    lastChildIsVisible.value = false;
+    return;
+  }
   lastChildIsVisible.value =
     container.scrollTop >
-    child.scrollHeight * children.value.length - container.offsetHeight;
+    child.scrollHeight * childrenFiltered.value.length - container.offsetHeight;
 };
 
 interface IChild {
@@ -59,7 +97,7 @@ interface IChild {
   regularTime: string;
   checkedIn: boolean;
 }
-const children: Ref<IChild[]> = ref([
+const children: IChild[] = [
   {
     img: "Biene",
     regularTime: "08:30 - 15:30 (7h)",
@@ -150,7 +188,7 @@ const children: Ref<IChild[]> = ref([
     regularTime: "08:30 - 15:30 (7h)",
     checkedIn: true,
   },
-]);
+];
 
 const checkinClass = (child: IChild) => {
   return child.checkedIn ? "checked-in" : "";
