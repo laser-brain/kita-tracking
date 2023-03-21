@@ -74,7 +74,7 @@ import { computed, onBeforeUnmount, onMounted, Ref, ref } from "vue";
 const loadFromLocal = (): Ref<ICheckinProps> => {
   const dummyData: IChild[] = [
     {
-      name: "Linus Feldmann",
+      name: "Biene",
       regularTime: "08:30 - 15:30 (7h)",
       checkedIn: true,
       arrivalTime: new Date(),
