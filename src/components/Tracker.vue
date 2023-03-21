@@ -6,10 +6,10 @@
     </div>
     <ToggleMenu
       :data="store.trackedSegments"
-      @init="() => store.createBackup"
-      @finalize="() => store.destroyBackup"
-      @delete="() => store.removeItem"
-      @restore="() => store.restoreItem"
+      @init="store.createBackup"
+      @finalize="store.destroyBackup"
+      @delete="store.removeItem"
+      @restore="store.restoreItem"
     />
     <PlayButton :running="running" @click="toggle" />
   </div>
