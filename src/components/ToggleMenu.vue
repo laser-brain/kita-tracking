@@ -22,7 +22,7 @@
         <v-list-item
           v-for="(item, index) in locals"
           :key="index"
-          :title="formatTimeSpan(item.date)"
+          :title="formatTimeSpan(item.date.duration)"
           subtitle="[TODO: Zeit von-bis, bearbeiten?]"
         >
           <template v-slot:append>
@@ -49,14 +49,15 @@
   </v-dialog>
 </template>
 <script setup lang="ts">
+import { ITrackingEntry } from "@/stores/tracker-store";
 import { ref, Ref } from "vue";
 
 interface IDialogProps {
-  data: Date[];
+  data: ITrackingEntry[];
 }
 
 interface ITimeEntry {
-  date: Date;
+  date: ITrackingEntry;
   deleted: boolean;
 }
 const props = defineProps<IDialogProps>();

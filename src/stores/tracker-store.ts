@@ -4,11 +4,16 @@ import { ref, Ref } from "vue";
 export interface ITrackingData {
   running: boolean;
   startTime: Date | null;
-  trackedSegments: Date[];
+  trackedSegments: ITrackingEntry[];
+}
+
+export interface ITrackingEntry {
+  startTime: Date;
+  duration: Date;
 }
 
 const trackingStore = defineStore("tracking", () => {
-  const segmentsBackup: Date[] = [];
+  const segmentsBackup: ITrackingEntry[] = [];
 
   const getMidnight = (date?: Date): Date => {
     const result = date ? new Date(date) : new Date();
@@ -60,8 +65,13 @@ const trackingStore = defineStore("tracking", () => {
     trackedSegments.value.splice(index, 0, item);
   };
 
-  const trackedSegments: Ref<Date[]> = ref(
-    props.trackedSegments.map((seg) => new Date(seg)) || []
+  const trackedSegments: Ref<ITrackingEntry[]> = ref(
+    props.trackedSegments.map((seg) => {
+      return {
+        startTime: new Date(seg.startTime),
+        duration: new Date(seg.duration),
+      };
+    }) || []
   );
 
   return {

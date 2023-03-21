@@ -19,7 +19,10 @@
 import { computed, Ref, ref } from "vue";
 import PlayButton from "./PlayButton.vue";
 import ToggleMenu from "./ToggleMenu.vue";
-import useTracking, { ITrackingData } from "@/stores/tracker-store";
+import useTracking, {
+  ITrackingData,
+  ITrackingEntry,
+} from "@/stores/tracker-store";
 
 const store = useTracking();
 const trackedTime: Ref<Date | null> = ref(null);
@@ -27,12 +30,14 @@ const startTime: Ref<Date | null> = ref(store.props.startTime);
 
 const running = ref(store.props.running);
 const trackedTimeFormatted = computed(() => {
-  let trackedToday = store.trackedSegments.reduce((prev, current) => {
-    if (!current) {
-      return prev;
-    }
-    return new Date(current.valueOf() + prev.valueOf());
-  }, new Date(0));
+  let trackedToday = store.trackedSegments
+    .map((entry) => entry.duration)
+    .reduce((prev, current) => {
+      if (!current) {
+        return prev;
+      }
+      return new Date(current.valueOf() + prev.valueOf());
+    }, new Date(0));
 
   if (trackedTime.value) {
     trackedToday = new Date(
@@ -55,7 +60,10 @@ const toggle = () => {
   if (running.value) {
     startTime.value = new Date();
   } else if (trackedTime.value) {
-    store.trackedSegments.push(trackedTime.value);
+    store.trackedSegments.push({
+      startTime: startTime.value,
+      duration: trackedTime.value,
+    } as ITrackingEntry);
     trackedTime.value = null;
   }
 };
