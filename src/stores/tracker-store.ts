@@ -10,6 +10,7 @@ export interface ITrackingData {
 export interface ITrackingEntry {
   startTime: Date;
   duration: Date;
+  deleted: boolean;
 }
 
 const trackingStore = defineStore("tracking", () => {
@@ -30,6 +31,11 @@ const trackingStore = defineStore("tracking", () => {
         '{"running":false,"startTime":null,"trackedSegments":[]}'
     ) as ITrackingData;
 
+    props.trackedSegments.forEach((item) => {
+      item.duration = new Date(item.duration);
+      item.startTime = new Date(item.startTime);
+    });
+
     if (!props.startTime) {
       return props;
     }
@@ -48,21 +54,9 @@ const trackingStore = defineStore("tracking", () => {
   };
 
   const props = loadFromLocal();
-  const createBackup = () => {
-    segmentsBackup.push(...trackedSegments.value);
-  };
 
-  const destroyBackup = () => {
-    segmentsBackup.splice(0, segmentsBackup.length);
-  };
-
-  const removeItem = (index: number) => {
-    trackedSegments.value.splice(index, 1);
-  };
-
-  const restoreItem = (index: number) => {
-    const item = segmentsBackup[index];
-    trackedSegments.value.splice(index, 0, item);
+  const destroyDeletedItems = () => {
+    trackedSegments.value = trackedSegments.value.filter((seg) => !seg.deleted);
   };
 
   const trackedSegments: Ref<ITrackingEntry[]> = ref(
@@ -70,6 +64,7 @@ const trackingStore = defineStore("tracking", () => {
       return {
         startTime: new Date(seg.startTime),
         duration: new Date(seg.duration),
+        deleted: false,
       };
     }) || []
   );
@@ -77,10 +72,7 @@ const trackingStore = defineStore("tracking", () => {
   return {
     props,
     trackedSegments,
-    createBackup,
-    destroyBackup,
-    removeItem,
-    restoreItem,
+    destroyDeletedItems,
   };
 });
 

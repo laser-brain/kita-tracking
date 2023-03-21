@@ -6,7 +6,7 @@
     transition="dialog-bottom-transition"
   >
     <template v-slot:activator="{ props }">
-      <v-btn color="teal-darken-4" dark v-bind="props" @click="open">
+      <v-btn color="teal-darken-4" dark v-bind="props">
         Alle Zeiten heute
       </v-btn>
     </template>
@@ -20,10 +20,13 @@
       <v-divider></v-divider>
       <v-list lines="two" subheader>
         <v-list-item
-          v-for="(item, index) in locals"
+          v-for="(item, index) in store.trackedSegments"
           :key="index"
-          :title="formatTimeSpan(item.date.duration)"
-          subtitle="[TODO: Zeit von-bis, bearbeiten?]"
+          :title="formatTimeSpan(item.duration)"
+          :subtitle="`${formatTimeSpan(item.startTime)} - ${formatTimeSpan(
+            item.startTime,
+            item.duration
+          )}`"
         >
           <template v-slot:append>
             <v-btn
@@ -49,59 +52,43 @@
   </v-dialog>
 </template>
 <script setup lang="ts">
-import { ITrackingEntry } from "@/stores/tracker-store";
-import { ref, Ref } from "vue";
+import useTracking from "@/stores/tracker-store";
+import { ref } from "vue";
 
-interface IDialogProps {
-  data: ITrackingEntry[];
-}
+const store = useTracking();
 
-interface ITimeEntry {
-  date: ITrackingEntry;
-  deleted: boolean;
-}
-const props = defineProps<IDialogProps>();
-type indexEvents = "delete" | "restore";
-type voidEvents = "init" | "finalize";
+type voidEvents = "finalize";
 const emit = defineEmits<{
-  (e: indexEvents, index: number): void;
   (e: voidEvents): void;
 }>();
 
-const locals: Ref<ITimeEntry[]> = ref(
-  props.data.map((item) => {
-    return {
-      date: item,
-      deleted: false,
-    };
-  })
-);
 const dialog = ref(false);
 
 const restoreEntry = (index: number) => {
-  const item = locals.value.at(index);
+  const item = store.trackedSegments.at(index);
   if (item) {
     item.deleted = false;
-    emit("restore", index);
   }
 };
 
 const removeEntry = (index: number) => {
-  const item = locals.value.at(index);
+  const item = store.trackedSegments.at(index);
   if (item) {
     item.deleted = true;
-    emit("delete", index);
   }
 };
 
-const open = () => {
-  emit("init");
-};
+const formatTimeSpan = (date: Date, duration?: Date) => {
+  const resultDate = date;
+  if (duration) {
+    resultDate.setTime(date.getTime() + duration.getTime());
+  }
 
-const formatTimeSpan = (date: Date) => {
   return `${formatNumber(
-    date.getHours() + date.getTimezoneOffset() / 60
-  )}:${formatNumber(date.getMinutes())}:${formatNumber(date.getSeconds())}`;
+    resultDate.getHours() + resultDate.getTimezoneOffset() / 60
+  )}:${formatNumber(resultDate.getMinutes())}:${formatNumber(
+    resultDate.getSeconds()
+  )}`;
 };
 
 const formatNumber = (input: number) => {
