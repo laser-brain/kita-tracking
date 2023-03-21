@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h3>Zeiterfassung</h3>
+    <h3>Zeiterfassung Mitarbeiter:innen</h3>
     <div class="timer">
       <span>{{ trackedTimeFormatted || "00:00:00" }}</span>
     </div>

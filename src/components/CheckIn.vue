@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h3>Check-Ins</h3>
+    <h3>Zeiterfassung Kinder</h3>
     <div>
       <v-switch
         v-model="showPickedUpChildren"
