@@ -5,11 +5,11 @@
       <span>{{ trackedTimeFormatted || "00:00:00" }}</span>
     </div>
     <ToggleMenu
-      :data="trackedSegments"
-      @init="createBackup"
-      @finalize="destroyBackup"
-      @delete="removeItem"
-      @restore="restoreItem"
+      :data="store.trackedSegments"
+      @init="() => store.createBackup"
+      @finalize="() => store.destroyBackup"
+      @delete="() => store.removeItem"
+      @restore="() => store.restoreItem"
     />
     <PlayButton :running="running" @click="toggle" />
   </div>
@@ -19,74 +19,15 @@
 import { computed, Ref, ref } from "vue";
 import PlayButton from "./PlayButton.vue";
 import ToggleMenu from "./ToggleMenu.vue";
+import useTracking, { ITrackingData } from "@/stores/tracker-store";
 
-interface ITrackingData {
-  running: boolean;
-  startTime: Date | null;
-  trackedSegments: Date[];
-}
-
-const segmentsBackup: Date[] = [];
-
-const createBackup = () => {
-  segmentsBackup.push(...trackedSegments.value);
-};
-
-const destroyBackup = () => {
-  segmentsBackup.splice(0, segmentsBackup.length);
-};
-
-const removeItem = (index: number) => {
-  trackedSegments.value.splice(index, 1);
-};
-
-const restoreItem = (index: number) => {
-  const item = segmentsBackup[index];
-  trackedSegments.value.splice(index, 0, item);
-};
-
-const getMidnight = (date?: Date): Date => {
-  const result = date ? new Date(date) : new Date();
-  result.setMinutes(0);
-  result.setHours(0);
-  result.setSeconds(0);
-  result.setMilliseconds(0);
-  return result;
-};
-
-const loadFromLocal = (): ITrackingData => {
-  let props = JSON.parse(
-    localStorage.getItem("tracker-data") ??
-      '{"running":false,"startTime":null,"trackedSegments":[]}'
-  ) as ITrackingData;
-
-  if (!props.startTime) {
-    return props;
-  }
-
-  const today = getMidnight();
-  const checkDate = getMidnight(props.startTime);
-
-  if (checkDate < today) {
-    return {
-      running: false,
-      startTime: null,
-      trackedSegments: [],
-    };
-  }
-  return props;
-};
-
-const props = loadFromLocal();
-
-const running = ref(props.running);
-const startTime: Ref<Date | null> = ref(props.startTime);
-const trackedSegments: Ref<Date[]> = ref(
-  props.trackedSegments.map((seg) => new Date(seg)) || []
-);
+const store = useTracking();
 const trackedTime: Ref<Date | null> = ref(null);
+const startTime: Ref<Date | null> = ref(store.props.startTime);
+
+const running = ref(store.props.running);
 const trackedTimeFormatted = computed(() => {
-  let trackedToday = trackedSegments.value.reduce((prev, current) => {
+  let trackedToday = store.trackedSegments.reduce((prev, current) => {
     if (!current) {
       return prev;
     }
@@ -114,7 +55,7 @@ const toggle = () => {
   if (running.value) {
     startTime.value = new Date();
   } else if (trackedTime.value) {
-    trackedSegments.value.push(trackedTime.value);
+    store.trackedSegments.push(trackedTime.value);
     trackedTime.value = null;
   }
 };
@@ -129,7 +70,7 @@ window.setInterval(() => {
   const props: ITrackingData = {
     running: running.value,
     startTime: startTime.value,
-    trackedSegments: trackedSegments.value,
+    trackedSegments: store.trackedSegments,
   };
   localStorage.setItem("tracker-data", JSON.stringify(props));
 }, 1000);

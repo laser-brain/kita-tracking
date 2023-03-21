@@ -10,6 +10,7 @@
     "surge": "yarn build && surge ./dist kita-tracking.surge.sh"
   },
   "dependencies": {
+    "pinia": "^2.0.33",
     "vue": "^3.2.47",
     "vue-router": "^4.1.6",
     "vuetify": "^3.1.2"
