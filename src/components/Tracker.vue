@@ -2,45 +2,49 @@
   <div class="container">
     <h3>Zeiterfassung Mitarbeiter:innen</h3>
     <div class="timer">
-      <span>{{ trackedTimeFormatted || "00:00:00" }}</span>
+      <span>{{ trackedTimeFormatted }}</span>
     </div>
     <ToggleMenu
       :data="store.trackedSegments"
       @finalize="store.destroyDeletedItems"
     />
-    <PlayButton :running="running" @click="toggle" />
+    <PlayButton :running="runningTracker ? true : false" @click="toggle" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, Ref, ref } from "vue";
+import { computed, Ref, ref, onMounted } from "vue";
 import PlayButton from "./PlayButton.vue";
 import ToggleMenu from "./ToggleMenu.vue";
-import useTracking, {
-  ITrackingData,
-  ITrackingEntry,
-} from "@/stores/tracker-store";
+import useTracking, { ITrackingEntry } from "@/stores/tracker-store";
 
 const store = useTracking();
-const trackedTime: Ref<Date | null> = ref(null);
-const startTime: Ref<Date | null> = ref(store.props.startTime);
+const employee = "Michael";
 
-const running = ref(store.props.running);
+onMounted(async () => {
+  await store.loadTrackingData(employee);
+
+  runningTracker.value = store.trackedSegments
+    .filter((entry) => !entry.duration)
+    .at(0);
+});
+
+const runningTracker: Ref<ITrackingEntry | undefined> = ref(undefined);
+
 const trackedTimeFormatted = computed(() => {
+  if (!store.trackedSegments) {
+    return "00:00:00";
+  }
+
   let trackedToday = store.trackedSegments
     .map((entry) => entry.duration)
     .reduce((prev, current) => {
       if (!current) {
         return prev;
       }
-      return new Date(current.valueOf() + prev.valueOf());
-    }, new Date(0));
+      return new Date(current.valueOf() + (prev as Date).valueOf());
+    }, new Date(0)) as Date;
 
-  if (trackedTime.value) {
-    trackedToday = new Date(
-      trackedToday.valueOf() + trackedTime.value.valueOf()
-    );
-  }
   return `${formatNumber(
     trackedToday.getHours() + trackedToday.getTimezoneOffset() / 60
   )}:${formatNumber(trackedToday.getMinutes())}:${formatNumber(
@@ -53,31 +57,32 @@ const formatNumber = (input: number) => {
 };
 
 const toggle = () => {
-  running.value = !running.value;
-  if (running.value) {
-    startTime.value = new Date();
-  } else if (trackedTime.value) {
-    store.trackedSegments.push({
-      startTime: startTime.value,
-      duration: trackedTime.value,
-    } as ITrackingEntry);
-    trackedTime.value = null;
+  if (runningTracker.value) {
+    const arrayReference = store.trackedSegments
+      .filter((seg) => !seg.duration)
+      .at(0);
+    if (!arrayReference) {
+      return;
+    }
+    arrayReference.duration = new Date(
+      new Date().valueOf() - runningTracker.value.startTime.valueOf()
+    );
+
+    runningTracker.value = undefined;
+  } else {
+    runningTracker.value = {
+      startTime: new Date(),
+    };
+    store.trackedSegments.push(runningTracker.value);
   }
 };
 
 window.setInterval(() => {
-  if (running.value && startTime.value) {
-    trackedTime.value = new Date(
-      new Date().valueOf() - new Date(startTime.value).valueOf()
+  if (runningTracker.value) {
+    runningTracker.value.duration = new Date(
+      new Date().valueOf() - new Date(runningTracker.value.startTime).valueOf()
     );
   }
-
-  const props: ITrackingData = {
-    running: running.value,
-    startTime: startTime.value,
-    trackedSegments: store.trackedSegments,
-  };
-  localStorage.setItem("tracker-data", JSON.stringify(props));
 }, 1000);
 </script>
 

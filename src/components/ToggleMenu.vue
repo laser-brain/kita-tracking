@@ -20,9 +20,11 @@
       <v-divider></v-divider>
       <v-list lines="two" subheader>
         <v-list-item
-          v-for="(item, index) in store.trackedSegments"
+          v-for="(item, index) in store.trackedSegments.filter(
+            (i) => i.duration
+          )"
           :key="index"
-          :title="formatTimeSpan(item.duration)"
+          :title="formatTimeSpan(item.duration as Date)"
           :subtitle="`${formatTimeSpan(item.startTime)} - ${formatTimeSpan(
             item.startTime,
             item.duration
