@@ -13,7 +13,7 @@
     <v-card>
       <v-toolbar dark color="teal-darken-4">
         <v-toolbar-title>Heute Erfasste Zeiten</v-toolbar-title>
-        <v-btn icon dark @click="dialog = false">
+        <v-btn icon dark @click="() => (dialog = false)">
           <v-icon color="white" icon="mdi-close"></v-icon>
         </v-btn>
       </v-toolbar>
@@ -30,7 +30,7 @@
               v-if="!item.deleted"
               icon
               color="error"
-              @click="removeEntry(index)"
+              @click="() => removeEntry(index)"
             >
               <v-icon>mdi-delete-forever</v-icon>
             </v-btn>
@@ -38,7 +38,7 @@
               v-else
               icon
               color="teal-darken-4"
-              @click="restoreEntry(index)"
+              @click="() => restoreEntry(index)"
             >
               <v-icon>mdi-undo-variant</v-icon>
             </v-btn>

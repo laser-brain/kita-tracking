@@ -1,13 +1,21 @@
 <template>
   <div class="container">
     <h3>Check-Ins</h3>
+    <div>
+      <v-switch
+        v-model="showPickedUpChildren"
+        label="Abgeholte Kinder anzeigen"
+        color="#004d40"
+        hide-details
+      />
+    </div>
     <div :class="`scroll ${lastChildIsVisible ? '' : 'overflow'}`">
       <table>
         <thead>
           <tr>
             <td></td>
             <td>Bedarfszeit</td>
-            <td>Anwesend</td>
+            <td>Anwesenheit</td>
           </tr>
         </thead>
         <tbody>
@@ -16,23 +24,41 @@
               <v-text-field
                 id="query"
                 v-model="query"
-                label="Liste filtern (z.B. Name, Uhrzeit, ja, nein, ...)"
+                label="Liste filtern (z.B. Name, Uhrzeit, ...)"
                 hide-details="auto"
               />
             </td>
           </tr>
           <tr v-for="child in filter" :class="`child ${checkinClass(child)}`">
-            <td>{{ child.img }}</td>
-            <td>{{ child.regularTime }}</td>
+            <td style="max-width: 64px" :title="child.name">
+              <span>
+                {{ child.name }}
+              </span>
+            </td>
             <td>
-              <v-switch
-                v-model="child.checkedIn"
-                hide-details
-                inset
-                :color="'teal-darken-4'"
-                border
-                :label="child.checkedIn ? 'Ja' : 'Nein'"
-              ></v-switch>
+              {{ child.regularTime }}
+              <hr />
+              <span v-if="!child.pickupTime">Ankunft</span>
+              {{ child.arrivalTime?.toLocaleTimeString() }}
+              <span v-if="!child.checkedIn || child.pickupTime"
+                >&nbsp;-&nbsp;</span
+              >
+              {{ child.pickupTime?.toLocaleTimeString() }}
+            </td>
+            <td>
+              <v-btn
+                v-if="!child.pickupTime"
+                @click="() => toggleCheckin(child)"
+                ><v-icon v-if="child.checkedIn" icon="mdi-logout"></v-icon>
+                <v-icon v-else icon="mdi-login"></v-icon>
+                {{ child.checkedIn ? "Geht" : "Kommt" }}</v-btn
+              >
+              <v-btn
+                @click="() => reset(child)"
+                v-else
+                prepend-icon="mdi-reload"
+                >Reset</v-btn
+              >
             </td>
           </tr>
         </tbody>
@@ -45,23 +71,169 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, Ref, ref } from "vue";
 
+const loadFromLocal = (): Ref<ICheckinProps> => {
+  const dummyData: IChild[] = [
+    {
+      name: "Linus Feldmann",
+      regularTime: "08:30 - 15:30 (7h)",
+      checkedIn: true,
+      arrivalTime: new Date(),
+    },
+    {
+      name: "Hase",
+      regularTime: "08:30 - 15:30 (7h)",
+      checkedIn: false,
+    },
+    {
+      name: "Maus",
+      regularTime: "08:30 - 15:30 (7h)",
+      checkedIn: false,
+    },
+    {
+      name: "Biene",
+      regularTime: "08:30 - 15:30 (7h)",
+      checkedIn: false,
+    },
+    {
+      name: "Hase",
+      regularTime: "08:30 - 15:30 (7h)",
+      checkedIn: false,
+    },
+    {
+      name: "Maus",
+      regularTime: "08:30 - 15:30 (7h)",
+      checkedIn: false,
+    },
+    {
+      name: "Biene",
+      regularTime: "08:30 - 15:30 (7h)",
+      checkedIn: false,
+    },
+    {
+      name: "Hase",
+      regularTime: "08:30 - 15:30 (7h)",
+      checkedIn: false,
+    },
+    {
+      name: "Maus",
+      regularTime: "08:30 - 15:30 (7h)",
+      checkedIn: false,
+    },
+    {
+      name: "Biene",
+      regularTime: "08:30 - 15:30 (7h)",
+      checkedIn: false,
+    },
+    {
+      name: "Hase",
+      regularTime: "08:30 - 15:30 (7h)",
+      checkedIn: false,
+    },
+    {
+      name: "Maus",
+      regularTime: "08:30 - 15:30 (7h)",
+      checkedIn: false,
+    },
+    {
+      name: "Biene",
+      regularTime: "08:30 - 15:30 (7h)",
+      checkedIn: false,
+    },
+    {
+      name: "Hase",
+      regularTime: "08:30 - 15:30 (7h)",
+      checkedIn: false,
+    },
+    {
+      name: "Maus",
+      regularTime: "08:30 - 15:30 (7h)",
+      checkedIn: false,
+    },
+    {
+      name: "Biene",
+      regularTime: "08:30 - 15:30 (7h)",
+      checkedIn: false,
+    },
+    {
+      name: "Hase",
+      regularTime: "08:30 - 15:30 (7h)",
+      checkedIn: false,
+    },
+    {
+      name: "Maus",
+      regularTime: "08:30 - 15:30 (7h)",
+      checkedIn: false,
+    },
+  ];
+
+  let props: Ref<ICheckinProps> = ref(
+    JSON.parse(
+      localStorage.getItem("checkin-data") ??
+        JSON.stringify({ children: dummyData })
+    )
+  );
+
+  props.value.children.forEach((child) => {
+    child.arrivalTime = child.arrivalTime
+      ? new Date(child.arrivalTime)
+      : child.arrivalTime;
+    child.pickupTime = child.pickupTime
+      ? new Date(child.pickupTime)
+      : child.pickupTime;
+  });
+
+  if (!props.value.dateStamp) {
+    return ref(props);
+  }
+
+  const today = getMidnight();
+  const checkDate = getMidnight(props.value.dateStamp);
+
+  if (checkDate < today) {
+    props.value.dateStamp = today;
+  }
+  return ref(props);
+};
+
 const query: Ref<string> = ref("");
+const showPickedUpChildren = ref(false);
 const childrenFiltered: Ref<IChild[]> = ref([]);
+const props = loadFromLocal();
 const filter = computed(() => {
-  childrenFiltered.value = children;
+  childrenFiltered.value = props.value.children.filter(
+    (child) => showPickedUpChildren.value || !child.pickupTime
+  );
 
   if (query.value) {
     const formatted = query.value.trim();
-    childrenFiltered.value = children.filter(
-      (child) =>
-        child.img.toLowerCase().indexOf(formatted.toLowerCase()) !== -1 ||
+    childrenFiltered.value = childrenFiltered.value.filter((child) => {
+      return (
+        child.name.toLowerCase().indexOf(formatted.toLowerCase()) !== -1 ||
         child.regularTime.indexOf(formatted) !== -1 ||
-        ("nein".indexOf(formatted) !== -1 && !child.checkedIn) ||
-        ("ja".indexOf(formatted) !== -1 && child.checkedIn)
-    );
+        (child.arrivalTime &&
+          child.arrivalTime.toLocaleTimeString().indexOf(formatted) !== -1) ||
+        (child.pickupTime &&
+          child.pickupTime.toLocaleTimeString().indexOf(formatted) !== -1)
+      );
+    });
   }
+
   return childrenFiltered.value;
 });
+
+const toggleCheckin = (child: IChild) => {
+  if (child.checkedIn) {
+    child.checkedIn = false;
+    child.pickupTime = new Date();
+  } else {
+    child.checkedIn = true;
+    child.arrivalTime = new Date();
+    child.pickupTime = undefined;
+  }
+
+  localStorage.setItem("checkin-data", JSON.stringify(props.value));
+};
+
 const lastChildIsVisible = ref(false);
 onMounted(() => {
   const container = document.querySelector(".scroll") as HTMLElement;
@@ -75,7 +247,8 @@ onMounted(() => {
   const child = document.querySelector(".child:last-child") as HTMLElement;
 
   if (!child) {
-    lastChildIsVisible.value = false;
+    lastChildIsVisible.value =
+      childrenFiltered.value.length === 0 ? true : false;
     return;
   }
   lastChildIsVisible.value =
@@ -106,108 +279,44 @@ const checkLastChildVisibility = () => {
 };
 
 interface IChild {
-  img: string;
+  name: string;
   regularTime: string;
   checkedIn: boolean;
+  arrivalTime?: Date;
+  pickupTime?: Date;
 }
-const children: IChild[] = [
-  {
-    img: "Biene",
-    regularTime: "08:30 - 15:30 (7h)",
-    checkedIn: false,
-  },
-  {
-    img: "Hase",
-    regularTime: "08:30 - 15:30 (7h)",
-    checkedIn: true,
-  },
-  {
-    img: "Maus",
-    regularTime: "08:30 - 15:30 (7h)",
-    checkedIn: true,
-  },
-  {
-    img: "Biene",
-    regularTime: "08:30 - 15:30 (7h)",
-    checkedIn: false,
-  },
-  {
-    img: "Hase",
-    regularTime: "08:30 - 15:30 (7h)",
-    checkedIn: true,
-  },
-  {
-    img: "Maus",
-    regularTime: "08:30 - 15:30 (7h)",
-    checkedIn: true,
-  },
-  {
-    img: "Biene",
-    regularTime: "08:30 - 15:30 (7h)",
-    checkedIn: false,
-  },
-  {
-    img: "Hase",
-    regularTime: "08:30 - 15:30 (7h)",
-    checkedIn: true,
-  },
-  {
-    img: "Maus",
-    regularTime: "08:30 - 15:30 (7h)",
-    checkedIn: true,
-  },
-  {
-    img: "Biene",
-    regularTime: "08:30 - 15:30 (7h)",
-    checkedIn: false,
-  },
-  {
-    img: "Hase",
-    regularTime: "08:30 - 15:30 (7h)",
-    checkedIn: true,
-  },
-  {
-    img: "Maus",
-    regularTime: "08:30 - 15:30 (7h)",
-    checkedIn: true,
-  },
-  {
-    img: "Biene",
-    regularTime: "08:30 - 15:30 (7h)",
-    checkedIn: false,
-  },
-  {
-    img: "Hase",
-    regularTime: "08:30 - 15:30 (7h)",
-    checkedIn: true,
-  },
-  {
-    img: "Maus",
-    regularTime: "08:30 - 15:30 (7h)",
-    checkedIn: true,
-  },
-  {
-    img: "Biene",
-    regularTime: "08:30 - 15:30 (7h)",
-    checkedIn: false,
-  },
-  {
-    img: "Hase",
-    regularTime: "08:30 - 15:30 (7h)",
-    checkedIn: true,
-  },
-  {
-    img: "Maus",
-    regularTime: "08:30 - 15:30 (7h)",
-    checkedIn: true,
-  },
-];
+
+interface ICheckinProps {
+  children: IChild[];
+  dateStamp?: Date;
+}
+
+const reset = (child: IChild) => {
+  child.arrivalTime = undefined;
+  child.pickupTime = undefined;
+  child.checkedIn = false;
+};
 
 const checkinClass = (child: IChild) => {
-  return child.checkedIn ? "checked-in" : "";
+  return child.checkedIn ? "checked-in" : child.pickupTime ? "checked-out" : "";
+};
+
+const getMidnight = (date?: Date): Date => {
+  const result = date ? new Date(date) : new Date();
+  result.setMinutes(0);
+  result.setHours(0);
+  result.setSeconds(0);
+  result.setMilliseconds(0);
+  return result;
 };
 </script>
 <style scoped lang="scss">
+.overflow-y {
+  overflow-y: hidden;
+  text-overflow: ellipsis;
+  white-space: pre;
+}
+
 .scroll {
   margin-top: 32px;
   overflow: auto;
@@ -266,7 +375,22 @@ table {
   tr {
     transition: background-color 256ms ease-in-out;
     &.checked-in {
-      background-color: burlywood;
+      color: white;
+      background-color: #004d40;
+      .v-btn {
+        color: black;
+
+        i {
+          transform: scaleX(-1);
+        }
+      }
+    }
+    &.checked-out {
+      color: white;
+      background-color: brown;
+      .v-btn {
+        color: black;
+      }
     }
   }
 
