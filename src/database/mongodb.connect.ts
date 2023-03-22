@@ -15,6 +15,10 @@ export interface IUser {
   functions: any;
 }
 
+interface ICheckPasswordResult {
+  success: boolean;
+}
+
 export const authenticate = async (): Promise<IUser | null> => {
   const app = new Realm.App({ id: "time-tracking-mptdz" });
   const credentials = Realm.Credentials.anonymous();
@@ -54,6 +58,17 @@ export const removeTrackingData = async (
     return;
   }
   del(user, "time-tracking", id);
+};
+
+export const checkPassword = async (
+  user: any,
+  username: string,
+  password: string
+) => {
+  const result = await user.functions.checkPassword(username, password);
+  console.log(result);
+
+  return result as ICheckPasswordResult;
 };
 
 const write = async <T>(
