@@ -3,6 +3,7 @@
     <h3>Zeiterfassung Mitarbeiter:innen</h3>
     <div class="timer">
       <span>{{ trackedTimeFormatted }}</span>
+      <span class="currentSegment">{{ currentSegmentFormatted }}</span>
     </div>
     <ToggleMenu
       :data="store.trackedSegments"
@@ -48,12 +49,21 @@ const trackedTimeFormatted = computed(() => {
       return new Date(current.valueOf() + (prev as Date).valueOf());
     }, new Date(0)) as Date;
 
-  return `${formatNumber(
-    trackedToday.getHours() + trackedToday.getTimezoneOffset() / 60
-  )}:${formatNumber(trackedToday.getMinutes())}:${formatNumber(
-    trackedToday.getSeconds()
-  )}`;
+  return formatDate(trackedToday);
 });
+
+const currentSegmentFormatted = computed(() => {
+  if (!runningTracker.value?.duration) {
+    return "00:00:00";
+  }
+  return formatDate(runningTracker.value.duration);
+});
+
+const formatDate = (date: Date) => {
+  return `${formatNumber(
+    date.getHours() + date.getTimezoneOffset() / 60
+  )}:${formatNumber(date.getMinutes())}:${formatNumber(date.getSeconds())}`;
+};
 
 const formatNumber = (input: number) => {
   return input.toLocaleString("de-DE", { minimumIntegerDigits: 2 });
@@ -98,8 +108,13 @@ window.setInterval(() => {
   align-items: center;
 
   span {
-    margin: 32px 0;
+    margin: 1em 0 0 0;
     font-size: 4em;
+
+    &.currentSegment {
+      margin: 0 0 0.5em 0;
+      font-size: 2em;
+    }
   }
 }
 
