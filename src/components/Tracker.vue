@@ -20,19 +20,22 @@ import useTracking, { ITrackingEntry } from "@/stores/tracker-store";
 
 const store = useTracking();
 const employee = "Michael";
+const initialized = ref(false);
 
 onMounted(async () => {
   await store.loadTrackingData(employee);
 
   runningTracker.value = store.trackedSegments
-    .filter((entry) => !entry.duration)
+    .filter((entry) => entry.running)
     .at(0);
+
+  initialized.value = true;
 });
 
 const runningTracker: Ref<ITrackingEntry | undefined> = ref(undefined);
 
 const trackedTimeFormatted = computed(() => {
-  if (!store.trackedSegments) {
+  if (!initialized.value || !store.trackedSegments) {
     return "00:00:00";
   }
 
@@ -56,23 +59,21 @@ const formatNumber = (input: number) => {
   return input.toLocaleString("de-DE", { minimumIntegerDigits: 2 });
 };
 
-const toggle = () => {
+const toggle = async () => {
   if (runningTracker.value) {
-    const arrayReference = store.trackedSegments
-      .filter((seg) => !seg.duration)
-      .at(0);
-    if (!arrayReference) {
-      return;
-    }
-    arrayReference.duration = new Date(
+    runningTracker.value.duration = new Date(
       new Date().valueOf() - runningTracker.value.startTime.valueOf()
     );
+    runningTracker.value.running = false;
 
+    await store.saveTrackingData(runningTracker.value);
     runningTracker.value = undefined;
   } else {
     runningTracker.value = {
+      running: true,
       startTime: new Date(),
     };
+    await store.saveTrackingData(runningTracker.value);
     store.trackedSegments.push(runningTracker.value);
   }
 };

@@ -4,12 +4,14 @@ import {
   authenticate,
   getEmployees,
   getTrackingData,
+  addTrackingData,
   IUser,
 } from "@/database/mongodb.connect";
 import { IEmployee } from "@/database/documents";
 
 export interface ITrackingEntry {
   startTime: Date;
+  running: boolean;
   duration?: Date;
   deleted?: boolean;
 }
@@ -29,16 +31,16 @@ const wait = (
   return awaiter;
 };
 
-const trackingStore = defineStore("tracking", () => {
-  const getMidnight = (date?: Date): Date => {
-    const result = date ? new Date(date) : new Date();
-    result.setMinutes(0);
-    result.setHours(0);
-    result.setSeconds(0);
-    result.setMilliseconds(0);
-    return result;
-  };
+const getMidnight = (date?: Date): Date => {
+  const result = date ? new Date(date) : new Date();
+  result.setMinutes(0);
+  result.setHours(0);
+  result.setSeconds(0);
+  result.setMilliseconds(0);
+  return result;
+};
 
+const trackingStore = defineStore("tracking", () => {
   const dbUser: Ref<IUser | null> = ref(null);
   const loadDbUser = async () => {
     dbUser.value = await authenticate();
@@ -58,7 +60,13 @@ const trackingStore = defineStore("tracking", () => {
   const loadTrackingData = async (employee: string) => {
     await wait(200, () => !loading.value);
     const data = await getTrackingData(dbUser.value, employee, getMidnight());
+
     trackedSegments.value = data;
+  };
+
+  const saveTrackingData = async (entry: ITrackingEntry) => {
+    await wait(200, () => !loading.value);
+    await addTrackingData(dbUser.value, { employee: "Michael", ...entry });
   };
 
   const destroyDeletedItems = () => {
@@ -70,6 +78,7 @@ const trackingStore = defineStore("tracking", () => {
   return {
     employees,
     loadTrackingData,
+    saveTrackingData,
     trackedSegments,
     destroyDeletedItems,
   };

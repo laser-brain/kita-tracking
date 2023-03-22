@@ -21,17 +21,42 @@ export const authenticate = async (): Promise<IUser | null> => {
   }
 };
 
-export const getEmployees = async (user: any): Promise<IEmployee[]> => {
-  const employees: DBResult<IEmployee[]> = await user.functions.loadEmployees();
-  return employees.result;
-};
+export const getEmployees = async (user: any): Promise<IEmployee[]> =>
+  read(user, "employees");
 
 export const getTrackingData = async (
   user: any,
   employee: string,
   dateFrom: Date
-): Promise<ITrackingDataDocument[]> => {
-  const data: DBResult<ITrackingDataDocument[]> =
-    await user.functions.loadTrackingData(employee, dateFrom);
+): Promise<ITrackingDataDocument[]> =>
+  read<ITrackingDataDocument[]>(user, "time-tracking", {
+    employee: employee,
+    startTime: { $gte: dateFrom },
+  });
+
+export const addTrackingData = async (user: any, data: ITrackingDataDocument) =>
+  write(user, "time-tracking", data);
+
+const write = async <T>(
+  user: any,
+  collection: string,
+  document: T
+): Promise<void> => {
+  await user.functions.insertDocument(collection, document);
+};
+
+const read = async <T>(
+  user: any,
+  collection: string,
+  filter?: any
+): Promise<T> => {
+  console.log(collection, filter);
+
+  const data: DBResult<T> = await user.functions.collectionRequest(
+    collection,
+    filter
+  );
+  console.log(data);
+
   return data.result;
 };
