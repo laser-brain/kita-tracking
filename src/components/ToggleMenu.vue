@@ -19,42 +19,42 @@
       </v-toolbar>
       <v-divider></v-divider>
       <v-list lines="two" subheader>
-        <v-list-item
+        <v-list-group
           v-for="(item, index) in store.trackedSegments.filter(
             (i) => i.duration
           )"
           :key="index"
-          :title="formatTimeSpan(item.duration as Date)"
-          :subtitle="`${formatTimeSpan(item.startTime)} - ${formatTimeSpan(
-            item.startTime,
-            item.duration
-          )}`"
+          :value="index"
         >
-          <template v-slot:append>
-            <v-btn
-              v-if="!item.deleted && !item.running"
-              icon
-              color="error"
-              @click="() => removeEntry(index)"
-            >
-              <v-icon>mdi-delete-forever</v-icon>
-            </v-btn>
-            <v-btn
-              v-else-if="!item.running"
-              icon
-              color="teal-darken-4"
-              @click="() => restoreEntry(index)"
-            >
-              <v-icon>mdi-undo-variant</v-icon>
-            </v-btn>
+          <template #activator="{ props }">
+            <div :class="`${item.deleted ? 'deleted' : 'available'}`">
+              <v-list-item
+                v-if="!item.running"
+                v-bind="props"
+                :title="formatTimeSpan(item.duration as Date)"
+                :subtitle="`${formatTimeSpan(
+                  item.startTime
+                )} - ${formatTimeSpan(item.startTime, item.duration)}`"
+              >
+              </v-list-item>
+            </div>
           </template>
-        </v-list-item>
+          <div :class="`${item.deleted ? 'deleted' : 'available'}`">
+            <edit-tracking-entry
+              :index="index"
+              :start-time="item.startTime"
+              :duration="(item.duration as Date)"
+            ></edit-tracking-entry>
+          </div>
+        </v-list-group>
       </v-list>
     </v-card>
   </v-dialog>
 </template>
 <script setup lang="ts">
+import EditTrackingEntry from "./EditTrackingEntry.vue";
 import useTracking from "@/stores/tracker-store";
+import { formatTimeSpan } from "@/business/time-formatting";
 import { ref } from "vue";
 
 const store = useTracking();
@@ -73,32 +73,13 @@ const restoreEntry = (index: number) => {
   }
 };
 
-const removeEntry = (index: number) => {
-  const item = store.trackedSegments.at(index);
-  if (item) {
-    item.deleted = true;
-  }
-};
-
-const formatTimeSpan = (date: Date, duration?: Date) => {
-  const resultDate = new Date(date);
-  if (duration) {
-    resultDate.setTime(date.getTime() + duration.getTime());
-  }
-
-  return `${formatNumber(
-    resultDate.getHours() + resultDate.getTimezoneOffset() / 60
-  )}:${formatNumber(resultDate.getMinutes())}:${formatNumber(
-    resultDate.getSeconds()
-  )}`;
-};
-
-const formatNumber = (input: number) => {
-  return input.toLocaleString("de-DE", { minimumIntegerDigits: 2 });
-};
-
 const finalize = () => {
   dialog.value = false;
   emit("finalize");
 };
 </script>
+<style lang="scss">
+.deleted {
+  background-color: rgb(var(--v-theme-error));
+}
+</style>

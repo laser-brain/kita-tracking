@@ -67,7 +67,6 @@ const trackingStore = defineStore("tracking", () => {
   const loadTrackingData = async (employee: string) => {
     await ensureDbConnection();
     const data = await getTrackingData(dbUser.value, employee, getMidnight());
-
     trackedSegments.value = data;
   };
 
