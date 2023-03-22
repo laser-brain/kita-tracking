@@ -5,11 +5,13 @@
       <span>{{ trackedTimeFormatted }}</span>
       <span class="currentSegment">{{ currentSegmentFormatted }}</span>
     </div>
-    <ToggleMenu
-      :data="store.trackedSegments"
-      @finalize="store.destroyDeletedItems"
-    />
-    <PlayButton :running="runningTracker ? true : false" @click="toggle" />
+    <div class="controls">
+      <ToggleMenu
+        :data="store.trackedSegments"
+        @finalize="store.destroyDeletedItems"
+      />
+      <PlayButton :running="runningTracker ? true : false" @click="toggle" />
+    </div>
   </div>
 </template>
 
@@ -99,11 +101,21 @@ window.setInterval(() => {
 
 <style scoped lang="scss">
 .container {
-  justify-content: space-around;
+  justify-content: flex-start;
 }
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  div {
+    margin-top: 4em;
+  }
+}
+
 .timer {
   display: flex;
-  margin-bottom: -128px;
   flex-direction: column;
   align-items: center;
 
@@ -114,58 +126,6 @@ window.setInterval(() => {
     &.currentSegment {
       margin: 0 0 0.5em 0;
       font-size: 2em;
-    }
-  }
-}
-
-.btn {
-  position: relative;
-  width: 80px;
-  height: 80px;
-  border: black 8px solid;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: border 0.1s ease-in-out;
-
-  &:hover {
-    border: green 8px solid;
-    .bar {
-      background-color: green;
-    }
-  }
-
-  .bar {
-    display: inline-block;
-    position: absolute;
-    top: 10px;
-    left: 0;
-    width: 8px;
-    height: 50px;
-    border-radius: 3px;
-    background-color: black;
-    transform-origin: center;
-    transition: transform 0.4s ease-in-out, background 0.1s ease-in-out;
-  }
-
-  &.pause {
-    border-color: red;
-    .bar {
-      background-color: red;
-    }
-    .bar-1 {
-      transform: translateX(16px) translateY(0px) rotate(0deg);
-    }
-    .bar-2 {
-      transform: translateX(40px) translateY(0px) rotate(0deg);
-    }
-  }
-
-  &.play {
-    .bar-1 {
-      transform: translateX(30px) translateY(-14px) rotate(-55deg);
-    }
-    .bar-2 {
-      transform: translateX(30px) translateY(11px) rotate(-125deg);
     }
   }
 }

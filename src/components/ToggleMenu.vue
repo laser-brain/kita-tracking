@@ -13,7 +13,7 @@
     <v-card>
       <v-toolbar dark color="teal-darken-4">
         <v-toolbar-title>Heute Erfasste Zeiten</v-toolbar-title>
-        <v-btn icon dark @click="() => (dialog = false)">
+        <v-btn icon dark @click="finalize">
           <v-icon color="white" icon="mdi-close"></v-icon>
         </v-btn>
       </v-toolbar>
@@ -32,7 +32,7 @@
         >
           <template v-slot:append>
             <v-btn
-              v-if="!item.deleted"
+              v-if="!item.deleted && !item.running"
               icon
               color="error"
               @click="() => removeEntry(index)"
@@ -40,7 +40,7 @@
               <v-icon>mdi-delete-forever</v-icon>
             </v-btn>
             <v-btn
-              v-else
+              v-else-if="!item.running"
               icon
               color="teal-darken-4"
               @click="() => restoreEntry(index)"
@@ -95,5 +95,10 @@ const formatTimeSpan = (date: Date, duration?: Date) => {
 
 const formatNumber = (input: number) => {
   return input.toLocaleString("de-DE", { minimumIntegerDigits: 2 });
+};
+
+const finalize = () => {
+  dialog.value = false;
+  emit("finalize");
 };
 </script>

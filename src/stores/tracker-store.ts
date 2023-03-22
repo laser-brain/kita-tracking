@@ -1,3 +1,4 @@
+import { removeTrackingData } from "./../database/mongodb.connect";
 import { defineStore } from "pinia";
 import { ref, Ref } from "vue";
 import {
@@ -7,9 +8,10 @@ import {
   addTrackingData,
   IUser,
 } from "@/database/mongodb.connect";
-import { IEmployee } from "@/database/documents";
+import { IEmployee, ObjectId } from "@/database/documents";
 
 export interface ITrackingEntry {
+  _id?: ObjectId;
   startTime: Date;
   running: boolean;
   duration?: Date;
@@ -66,10 +68,22 @@ const trackingStore = defineStore("tracking", () => {
 
   const saveTrackingData = async (entry: ITrackingEntry) => {
     await wait(200, () => !loading.value);
-    await addTrackingData(dbUser.value, { employee: "Michael", ...entry });
+    const id = await addTrackingData(dbUser.value, {
+      employee: "Michael",
+      ...entry,
+    });
+    console.log(id);
+    entry._id = id;
   };
 
-  const destroyDeletedItems = () => {
+  const destroyDeletedItems = async () => {
+    const promises: Promise<void>[] = [];
+    trackedSegments.value.forEach((seg) => {
+      if (seg.deleted) {
+        promises.push(removeTrackingData(dbUser.value, seg._id));
+      }
+    });
+    await Promise.all(promises);
     trackedSegments.value = trackedSegments.value.filter((seg) => !seg.deleted);
   };
 

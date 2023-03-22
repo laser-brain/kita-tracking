@@ -1,5 +1,9 @@
+import * as Realm from "realm-web";
+
+export type ObjectId = Realm.BSON.ObjectID;
+
 export interface ITrackingDataDocument {
-  _id?: string;
+  _id?: Realm.BSON.ObjectID;
   employee: string;
   running: boolean;
   startTime: Date;

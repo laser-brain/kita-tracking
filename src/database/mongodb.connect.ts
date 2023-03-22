@@ -1,5 +1,11 @@
 import * as Realm from "realm-web";
-import { IEmployee, ITrackingDataDocument } from "@/database/documents";
+import {
+  IEmployee,
+  ITrackingDataDocument,
+  ObjectId,
+} from "@/database/documents";
+
+type collection = "time-tracking" | "employees";
 
 interface DBResult<T> {
   result: T;
@@ -34,29 +40,48 @@ export const getTrackingData = async (
     startTime: { $gte: dateFrom },
   });
 
-export const addTrackingData = async (user: any, data: ITrackingDataDocument) =>
-  write(user, "time-tracking", data);
+export const addTrackingData = async (
+  user: any,
+  data: ITrackingDataDocument
+): Promise<ObjectId | undefined> => write(user, "time-tracking", data);
+
+export const removeTrackingData = async (
+  user: any,
+  id: ObjectId | undefined
+) => {
+  if (!id) {
+    console.error("No id was provided for deletion request");
+    return;
+  }
+  del(user, "time-tracking", id);
+};
 
 const write = async <T>(
   user: any,
-  collection: string,
+  collection: collection,
   document: T
-): Promise<void> => {
-  await user.functions.insertDocument(collection, document);
+): Promise<ObjectId | undefined> => {
+  const data = await user.functions.insertDocument(collection, document);
+  return data.upsertedId as ObjectId;
 };
 
 const read = async <T>(
   user: any,
-  collection: string,
+  collection: collection,
   filter?: any
 ): Promise<T> => {
-  console.log(collection, filter);
-
   const data: DBResult<T> = await user.functions.collectionRequest(
     collection,
     filter
   );
-  console.log(data);
 
   return data.result;
+};
+
+const del = async (
+  user: any,
+  collection: collection,
+  id: ObjectId
+): Promise<void> => {
+  await user.functions.deleteRequest(collection, id);
 };
