@@ -53,21 +53,26 @@ const trackingStore = defineStore("tracking", () => {
     loading.value = false;
   });
 
+  const ensureDbConnection = async () => {
+    await wait(100, () => !loading.value);
+    return;
+  };
+
   const employees = async (): Promise<IEmployee[]> => {
-    await wait(200, () => !loading.value);
+    await ensureDbConnection();
     const data = await getEmployees(dbUser.value);
     return data;
   };
 
   const loadTrackingData = async (employee: string) => {
-    await wait(200, () => !loading.value);
+    await ensureDbConnection();
     const data = await getTrackingData(dbUser.value, employee, getMidnight());
 
     trackedSegments.value = data;
   };
 
   const saveTrackingData = async (entry: ITrackingEntry) => {
-    await wait(200, () => !loading.value);
+    await ensureDbConnection();
     const id = await addTrackingData(dbUser.value, {
       employee: "Michael",
       ...entry,
@@ -78,6 +83,7 @@ const trackingStore = defineStore("tracking", () => {
   };
 
   const destroyDeletedItems = async () => {
+    await ensureDbConnection();
     const promises: Promise<void>[] = [];
     trackedSegments.value.forEach((seg) => {
       if (seg.deleted) {
