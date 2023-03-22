@@ -81,7 +81,7 @@ const removeEntry = (index: number) => {
 };
 
 const formatTimeSpan = (date: Date, duration?: Date) => {
-  const resultDate = date;
+  const resultDate = new Date(date);
   if (duration) {
     resultDate.setTime(date.getTime() + duration.getTime());
   }
