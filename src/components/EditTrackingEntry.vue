@@ -5,6 +5,7 @@
       label="Von"
       v-model="startTimeString"
       hide-details
+      @focus="$event.target.select()"
     />
     <span> &nbsp;-&nbsp; </span>
     <v-text-field
@@ -12,6 +13,7 @@
       label="Bis"
       v-model="endTimeString"
       hide-details
+      @focus="$event.target.select()"
     />
   </div>
   <div class="buttons">
@@ -63,17 +65,24 @@ const save = async () => {
     item.duration = new Date(updatedEnd.valueOf() - updatedStart.valueOf());
 
     await store.saveTrackingData(item);
+
+    startTimeString.value = formatTimeSpan(item.startTime);
+    endTimeString.value = formatTimeSpan(item.startTime, item.duration);
   }
 };
 
 const updateDate = (date: Date, value: string) => {
   const timeParts = value.split(":");
+  while (timeParts.length < 3) {
+    timeParts.push("00");
+  }
   const result = new Date(date);
 
   result.setHours(
     parseInt(timeParts[0]),
     parseInt(timeParts[1]) - date.getTimezoneOffset(),
-    parseInt(timeParts[2])
+    parseInt(timeParts[2]),
+    0
   );
 
   console.log(result);

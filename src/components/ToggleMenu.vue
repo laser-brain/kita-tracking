@@ -7,7 +7,7 @@
   >
     <template v-slot:activator="{ props }">
       <v-btn color="teal-darken-4" dark v-bind="props">
-        Alle Zeiten heute
+        Zeiten bearbeiten / löschen
       </v-btn>
     </template>
     <v-card>
@@ -47,6 +47,14 @@
             ></edit-tracking-entry>
           </div>
         </v-list-group>
+        <div class="close">
+          <v-btn
+            color="teal-darken-4"
+            prepend-icon="mdi-close"
+            @click="finalize"
+            >Schliessen</v-btn
+          >
+        </div>
       </v-list>
     </v-card>
   </v-dialog>
@@ -66,13 +74,6 @@ const emit = defineEmits<{
 
 const dialog = ref(false);
 
-const restoreEntry = (index: number) => {
-  const item = store.trackedSegments.at(index);
-  if (item) {
-    item.deleted = false;
-  }
-};
-
 const finalize = () => {
   dialog.value = false;
   emit("finalize");
@@ -81,5 +82,18 @@ const finalize = () => {
 <style lang="scss">
 .deleted {
   background-color: rgb(var(--v-theme-error));
+}
+
+.close {
+  position: fixed;
+  display: flex;
+  width: 100vw;
+  justify-content: center;
+  bottom: 4em;
+
+  button {
+    min-height: 4em;
+    padding: 1em 2em;
+  }
 }
 </style>

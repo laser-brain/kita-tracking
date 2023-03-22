@@ -72,18 +72,20 @@ const formatNumber = (input: number) => {
 };
 
 const toggle = async () => {
+  const now = new Date();
+  now.setMilliseconds(0);
   if (runningTracker.value) {
-    runningTracker.value.duration = new Date(
-      new Date().valueOf() - runningTracker.value.startTime.valueOf()
-    );
     runningTracker.value.running = false;
+    runningTracker.value.duration = new Date(
+      now.valueOf() - runningTracker.value.startTime.valueOf()
+    );
 
     await store.saveTrackingData(runningTracker.value);
     runningTracker.value = undefined;
   } else {
     runningTracker.value = {
       running: true,
-      startTime: new Date(),
+      startTime: now,
     };
     await store.saveTrackingData(runningTracker.value);
     store.trackedSegments.push(runningTracker.value);
@@ -91,7 +93,7 @@ const toggle = async () => {
 };
 
 window.setInterval(() => {
-  if (runningTracker.value) {
+  if (runningTracker.value?.running) {
     runningTracker.value.duration = new Date(
       new Date().valueOf() - new Date(runningTracker.value.startTime).valueOf()
     );
