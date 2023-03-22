@@ -66,8 +66,6 @@ export const checkPassword = async (
   password: string
 ) => {
   const result = await user.functions.checkPassword(username, password);
-  console.log(result);
-
   return result as ICheckPasswordResult;
 };
 

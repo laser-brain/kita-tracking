@@ -16,6 +16,7 @@
           :rules="[rules.required]"
           :append-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
           @click:append="() => (showPassword = !showPassword)"
+          @keyup.enter="login"
         />
       </v-card-text>
       <v-card-actions>
@@ -38,13 +39,17 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import useUser from "@/stores/user-store";
+import router from "@/plugins/router";
+
+const store = useUser();
+if (store.loggedIn) {
+  router.push("/tracking");
+}
 
 const user = ref("");
 const password = ref("");
 const showLoader = ref(false);
 const showPassword = ref(false);
-
-const store = useUser();
 
 const rules = {
   required: (value: string) => !!value || "Pflichtfeld.",

@@ -24,8 +24,11 @@ const store = defineStore("users", () => {
     await wait(100, () => !loading.value);
     return;
   };
-  const loggedIn = ref(false);
-  const employee: Ref<string> = ref("");
+
+  const localUser = localStorage.getItem("tracking-user");
+
+  const loggedIn = ref(localUser !== null);
+  const employee: Ref<string> = ref(localUser || "");
 
   const dbUser: Ref<IUser | null> = ref(null);
   const loadDbUser = async () => {
@@ -38,11 +41,13 @@ const store = defineStore("users", () => {
 
   const logIn = async (username: string, password: string) => {
     await ensureDbConnection();
-    console.log("authenticating");
     const result = await checkPassword(dbUser.value, username, password);
     if (result.success) {
       loggedIn.value = true;
       employee.value = username;
+
+      localStorage.setItem("tracking-user", username);
+
       router.push("/tracking");
     }
   };
@@ -50,6 +55,7 @@ const store = defineStore("users", () => {
   const logOut = () => {
     loggedIn.value = false;
     employee.value = "";
+    localStorage.removeItem("tracking-user");
     router.push("/");
   };
 
