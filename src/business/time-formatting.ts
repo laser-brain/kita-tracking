@@ -4,11 +4,9 @@ export const formatTimeSpan = (date: Date, duration?: Date) => {
     resultDate.setTime(date.getTime() + duration.getTime());
   }
 
-  return `${formatNumber(
-    resultDate.getHours() + resultDate.getTimezoneOffset() / 60
-  )}:${formatNumber(resultDate.getMinutes())}:${formatNumber(
-    resultDate.getSeconds()
-  )}`;
+  return `${formatNumber(resultDate.getHours())}:${formatNumber(
+    resultDate.getMinutes()
+  )}:${formatNumber(resultDate.getSeconds())}`;
 };
 
 const formatNumber = (input: number) => {
