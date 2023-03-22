@@ -72,8 +72,9 @@ const trackingStore = defineStore("tracking", () => {
       employee: "Michael",
       ...entry,
     });
-    console.log(id);
-    entry._id = id;
+    if (id) {
+      entry._id = id;
+    }
   };
 
   const destroyDeletedItems = async () => {
