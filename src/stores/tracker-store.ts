@@ -1,3 +1,4 @@
+import useUsers from "@/stores/user-store";
 import { removeTrackingData } from "./../database/mongodb.connect";
 import { defineStore } from "pinia";
 import { ref, Ref } from "vue";
@@ -43,6 +44,8 @@ const getMidnight = (date?: Date): Date => {
 };
 
 const trackingStore = defineStore("tracking", () => {
+  const userStore = useUsers();
+
   const dbUser: Ref<IUser | null> = ref(null);
   const loadDbUser = async () => {
     dbUser.value = await authenticate();
@@ -64,16 +67,16 @@ const trackingStore = defineStore("tracking", () => {
     return data;
   };
 
-  const loadTrackingData = async (employee: string) => {
+  const loadTrackingData = async () => {
     await ensureDbConnection();
-    const data = await getTrackingData(dbUser.value, employee, getMidnight());
+    const data = await getTrackingData(dbUser.value, userStore.employee, getMidnight());
     trackedSegments.value = data;
   };
 
   const saveTrackingData = async (entry: ITrackingEntry) => {
     await ensureDbConnection();
     const id = await addTrackingData(dbUser.value, {
-      employee: "Michael",
+      employee: userStore.employee,
       ...entry,
     });
     if (id) {

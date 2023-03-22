@@ -22,11 +22,10 @@ import ToggleMenu from "./ToggleMenu.vue";
 import useTracking, { ITrackingEntry } from "@/stores/tracker-store";
 
 const store = useTracking();
-const employee = "Michael";
 const initialized = ref(false);
 
 onMounted(async () => {
-  await store.loadTrackingData(employee);
+  await store.loadTrackingData();
 
   runningTracker.value = store.trackedSegments
     .filter((entry) => entry.running)

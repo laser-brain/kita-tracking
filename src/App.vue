@@ -1,18 +1,25 @@
-<script setup lang="ts"></script>
-
 <template>
   <v-app>
-    <h2 class="greeting">Hallo Markus</h2>
+    <div class="flex row greeting">
+      <h2 class="">
+        {{ store.loggedIn ? `Hallo ${store.employee}` : "Login" }}
+      </h2>
+      <v-btn v-if="store.loggedIn" @click="store.logOut">Abmelden</v-btn>
+    </div>
     <v-main>
       <router-view></router-view>
-      <div class="nav">
-        <router-link to="/">Zeiterfassung</router-link>
+      <div class="nav" v-if="store.loggedIn">
+        <router-link to="/tracking">Zeiterfassung</router-link>
         <router-link to="/check-ins">Check-Ins</router-link>
       </div>
     </v-main>
   </v-app>
 </template>
+<script setup lang="ts">
+import useUsers from "@/stores/user-store";
 
+const store = useUsers();
+</script>
 <style lang="scss">
 * {
   font-family: "Roboto", sans-serif;
@@ -22,6 +29,14 @@ html,
 body,
 #app {
   height: 100%;
+}
+
+.flex {
+  display: flex;
+  &.row {
+    flex-direction: row;
+  }
+  justify-content: space-between;
 }
 
 .v-application {
@@ -75,8 +90,10 @@ $greeting-dist-top: 16vh;
 }
 
 .greeting {
-  font-size: 1.28em;
-  margin-top: 8vh;
+  h2 {
+    font-size: 1.28em;
+  }
+  margin: 4vh 2vw;
   text-align: center;
 }
 
