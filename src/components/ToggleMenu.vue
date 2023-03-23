@@ -21,7 +21,7 @@
       <v-list lines="two" subheader>
         <v-list-group
           v-for="(item, index) in store.trackedSegments.filter(
-            (i) => i.duration
+            (i) => i.endTime
           )"
           :key="index"
           :value="index"
@@ -31,10 +31,8 @@
               <v-list-item
                 v-if="!item.running"
                 v-bind="props"
-                :title="formatTimeSpan(item.duration as Date)"
-                :subtitle="`${formatTimeSpan(
-                  item.startTime
-                )} - ${formatTimeSpan(item.startTime, item.duration)}`"
+                :title="item.duration"
+                :subtitle="`${item.startTime.toLocaleTimeString()} - ${(item.endTime as Date).toLocaleTimeString()}`"
               >
               </v-list-item>
             </div>
@@ -43,7 +41,7 @@
             <edit-tracking-entry
               :index="index"
               :start-time="item.startTime"
-              :duration="(item.duration as Date)"
+              :endTime="(item.endTime as Date)"
             ></edit-tracking-entry>
           </div>
         </v-list-group>
@@ -62,7 +60,6 @@
 <script setup lang="ts">
 import EditTrackingEntry from "./EditTrackingEntry.vue";
 import useTracking from "@/stores/tracker-store";
-import { formatTimeSpan } from "@/business/time-formatting";
 import { ref } from "vue";
 
 const store = useTracking();

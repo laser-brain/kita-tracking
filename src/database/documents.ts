@@ -7,7 +7,8 @@ export interface ITrackingDataDocument {
   employee: string;
   running: boolean;
   startTime: Date;
-  duration?: Date;
+  endTime?: Date;
+  duration?: string;
 }
 
 export interface IEmployee {

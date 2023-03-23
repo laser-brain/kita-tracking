@@ -20,6 +20,7 @@ import { computed, Ref, ref, onMounted } from "vue";
 import PlayButton from "./PlayButton.vue";
 import ToggleMenu from "./ToggleMenu.vue";
 import useTracking, { ITrackingEntry } from "@/stores/tracker-store";
+import { updateTimeFromString } from "@/business/utility";
 
 const store = useTracking();
 const initialized = ref(false);
@@ -36,49 +37,58 @@ onMounted(async () => {
 
 const runningTracker: Ref<ITrackingEntry | undefined> = ref(undefined);
 
+const getTimeSpan = (startTime: Date, endTime?: Date) => {
+  if (!endTime) {
+    return new Date(startTime.getTimezoneOffset() * 60 * 1000);
+  }
+  return new Date(endTime.valueOf() - startTime.valueOf());
+};
+
 const trackedTimeFormatted = computed(() => {
-  if (!initialized.value || !store.trackedSegments) {
+  if (!initialized.value || !store.trackedSegments?.length) {
     return "00:00:00";
   }
 
-  let trackedToday = store.trackedSegments
-    .map((entry) => entry.duration)
-    .reduce((prev, current) => {
-      if (!current) {
-        return prev;
-      }
-      return new Date(current.valueOf() + (prev as Date).valueOf());
-    }, new Date(0)) as Date;
+  const now = new Date();
 
-  return formatDate(trackedToday);
+  const emptyTracker = {
+    startTime: new Date(0),
+    running: false,
+    accumulatedTime: new Date(now.getTimezoneOffset() * 60 * 1000),
+  };
+
+  let trackedToday = store.trackedSegments.reduce((prev, current) => {
+    if (!current?.duration) {
+      return prev;
+    }
+
+    const timeSpan = updateTimeFromString(new Date(0), current.duration);
+    timeSpan.setHours(timeSpan.getHours() - timeSpan.getTimezoneOffset() / 60);
+
+    return {
+      startTime: current.startTime,
+      running: false,
+      accumulatedTime: new Date(
+        prev.accumulatedTime.valueOf() + timeSpan.valueOf()
+      ),
+    };
+  }, { ...runningTracker.value, accumulatedTime: emptyTracker.accumulatedTime } || emptyTracker);
+
+  return trackedToday.accumulatedTime.toLocaleTimeString();
 });
 
 const currentSegmentFormatted = computed(() => {
   if (!runningTracker.value?.duration) {
     return "00:00:00";
   }
-  return formatDate(runningTracker.value.duration);
+  return runningTracker.value.duration;
 });
-
-const formatDate = (date: Date) => {
-  return `${formatNumber(
-    date.getHours() + date.getTimezoneOffset() / 60
-  )}:${formatNumber(date.getMinutes())}:${formatNumber(date.getSeconds())}`;
-};
-
-const formatNumber = (input: number) => {
-  return input.toLocaleString("de-DE", { minimumIntegerDigits: 2 });
-};
 
 const toggle = async () => {
   const now = new Date();
   now.setMilliseconds(0);
   if (runningTracker.value) {
     runningTracker.value.running = false;
-    runningTracker.value.duration = new Date(
-      now.valueOf() - runningTracker.value.startTime.valueOf()
-    );
-
     await store.saveTrackingData(runningTracker.value);
     runningTracker.value = undefined;
   } else {
@@ -93,9 +103,15 @@ const toggle = async () => {
 
 window.setInterval(() => {
   if (runningTracker.value?.running) {
+    const now = new Date();
+    now.setMilliseconds(0);
+    runningTracker.value.endTime = now;
+
+    const offset =
+      runningTracker.value.startTime.getTimezoneOffset() * 60 * 1000;
     runningTracker.value.duration = new Date(
-      new Date().valueOf() - new Date(runningTracker.value.startTime).valueOf()
-    );
+      now.valueOf() - runningTracker.value.startTime.valueOf() + offset
+    ).toLocaleTimeString();
   }
 }, 1000);
 </script>

@@ -4,20 +4,19 @@ import { removeTrackingData } from "./../database/mongodb.connect";
 import { defineStore } from "pinia";
 import { ref, Ref } from "vue";
 import { IEmployee, ObjectId } from "@/database/documents";
-import { getMidnight, wait } from "@/business/utility";
+import { getMidnight } from "@/business/utility";
 import {
-  authenticate,
   getEmployees,
   getTrackingData,
   addTrackingData,
-  IUser,
 } from "@/database/mongodb.connect";
 
 export interface ITrackingEntry {
   _id?: ObjectId;
   startTime: Date;
+  endTime?: Date;
   running: boolean;
-  duration?: Date;
+  duration?: string;
   deleted?: boolean;
 }
 

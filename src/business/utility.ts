@@ -21,3 +21,18 @@ export const getMidnight = (date?: Date): Date => {
   result.setMilliseconds(0);
   return result;
 };
+
+export const updateTimeFromString = (referenceDate: Date, value: string) => {
+  const timeParts = value.split(":");
+  while (timeParts.length < 3) {
+    timeParts.push("00");
+  }
+
+  referenceDate.setHours(
+    parseInt(timeParts[0]),
+    parseInt(timeParts[1]),
+    parseInt(timeParts[2]),
+    0
+  );
+  return referenceDate;
+};

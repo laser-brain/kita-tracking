@@ -5,6 +5,7 @@
       label="Von"
       v-model="startTimeString"
       hide-details
+      ref="startTimeInputRef"
       @focus="$event.target.select()"
     />
     <span> &nbsp;-&nbsp; </span>
@@ -13,6 +14,7 @@
       label="Bis"
       v-model="endTimeString"
       hide-details
+      ref="endTimeInputRef"
       @focus="$event.target.select()"
     />
   </div>
@@ -38,11 +40,11 @@
 </template>
 <script setup lang="ts">
 import { ref } from "vue";
-import { formatTimeSpan } from "@/business/time-formatting";
 import useTracking from "@/stores/tracker-store";
-const props = defineProps<{ startTime: Date; duration: Date; index: number }>();
-const startTimeString = ref(formatTimeSpan(props.startTime));
-const endTimeString = ref(formatTimeSpan(props.startTime, props.duration));
+import { updateTimeFromString } from "@/business/utility";
+const props = defineProps<{ startTime: Date; endTime: Date; index: number }>();
+const startTimeString = ref(props.startTime.toLocaleTimeString());
+const endTimeString = ref(props.endTime.toLocaleTimeString());
 
 const store = useTracking();
 const deleted = ref(false);
@@ -50,9 +52,12 @@ const deleted = ref(false);
 const save = async () => {
   const item = store.trackedSegments.at(props.index);
   if (item) {
-    const updatedStart = updateDate(props.startTime, startTimeString.value);
-    const updatedEnd = updateDate(
-      new Date(props.startTime.valueOf() + props.duration.valueOf()),
+    const updatedStart = updateTimeFromString(
+      new Date(props.startTime),
+      startTimeString.value
+    );
+    const updatedEnd = updateTimeFromString(
+      new Date(props.endTime),
       endTimeString.value
     );
 
@@ -62,32 +67,18 @@ const save = async () => {
     }
 
     item.startTime = updatedStart;
-    item.duration = new Date(updatedEnd.valueOf() - updatedStart.valueOf());
+    item.endTime = updatedEnd;
+    item.duration = new Date(
+      updatedEnd.valueOf() -
+        updatedStart.valueOf() +
+        props.startTime.getTimezoneOffset() * 60 * 1000
+    ).toLocaleTimeString();
 
     await store.saveTrackingData(item);
 
-    startTimeString.value = formatTimeSpan(item.startTime);
-    endTimeString.value = formatTimeSpan(item.startTime, item.duration);
+    startTimeString.value = item.startTime.toLocaleTimeString();
+    endTimeString.value = item.endTime.toLocaleTimeString();
   }
-};
-
-const updateDate = (date: Date, value: string) => {
-  const timeParts = value.split(":");
-  while (timeParts.length < 3) {
-    timeParts.push("00");
-  }
-  const result = new Date(date);
-
-  result.setHours(
-    parseInt(timeParts[0]),
-    parseInt(timeParts[1]) - date.getTimezoneOffset(),
-    parseInt(timeParts[2]),
-    0
-  );
-
-  console.log(result);
-
-  return result;
 };
 
 const reset = async (soft: boolean = false) => {
@@ -97,8 +88,8 @@ const reset = async (soft: boolean = false) => {
     item.deleted = false;
   }
 
-  startTimeString.value = formatTimeSpan(props.startTime);
-  endTimeString.value = formatTimeSpan(props.startTime, props.duration);
+  startTimeString.value = props.startTime.toLocaleTimeString();
+  endTimeString.value = props.endTime?.toLocaleTimeString();
 
   if (!soft) {
     await save();
