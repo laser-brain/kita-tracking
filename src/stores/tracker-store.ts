@@ -1,7 +1,10 @@
+import useDatabase from "@/stores/database-store";
 import useUsers from "@/stores/user-store";
 import { removeTrackingData } from "./../database/mongodb.connect";
 import { defineStore } from "pinia";
 import { ref, Ref } from "vue";
+import { IEmployee, ObjectId } from "@/database/documents";
+import { getMidnight, wait } from "@/business/utility";
 import {
   authenticate,
   getEmployees,
@@ -9,7 +12,6 @@ import {
   addTrackingData,
   IUser,
 } from "@/database/mongodb.connect";
-import { IEmployee, ObjectId } from "@/database/documents";
 
 export interface ITrackingEntry {
   _id?: ObjectId;
@@ -19,63 +21,25 @@ export interface ITrackingEntry {
   deleted?: boolean;
 }
 
-const wait = (
-  checkInterval: number,
-  condition: () => boolean
-): Promise<void> => {
-  const awaiter = new Promise<void>((resolve) => {
-    const loadInterval = window.setInterval(() => {
-      if (condition()) {
-        window.clearInterval(loadInterval);
-        resolve();
-      }
-    }, checkInterval);
-  });
-  return awaiter;
-};
-
-const getMidnight = (date?: Date): Date => {
-  const result = date ? new Date(date) : new Date();
-  result.setMinutes(0);
-  result.setHours(0);
-  result.setSeconds(0);
-  result.setMilliseconds(0);
-  return result;
-};
-
 const trackingStore = defineStore("tracking", () => {
   const userStore = useUsers();
-
-  const dbUser: Ref<IUser | null> = ref(null);
-  const loadDbUser = async () => {
-    dbUser.value = await authenticate();
-  };
-
-  const loading = ref(true);
-  loadDbUser().then(() => {
-    loading.value = false;
-  });
-
-  const ensureDbConnection = async () => {
-    await wait(100, () => !loading.value);
-    return;
-  };
-
+  const dbStore = useDatabase();
   const employees = async (): Promise<IEmployee[]> => {
-    await ensureDbConnection();
-    const data = await getEmployees(dbUser.value);
+    const data = await getEmployees(await dbStore.getDbUser());
     return data;
   };
 
   const loadTrackingData = async () => {
-    await ensureDbConnection();
-    const data = await getTrackingData(dbUser.value, userStore.employee, getMidnight());
+    const data = await getTrackingData(
+      await dbStore.getDbUser(),
+      userStore.employee,
+      getMidnight()
+    );
     trackedSegments.value = data;
   };
 
   const saveTrackingData = async (entry: ITrackingEntry) => {
-    await ensureDbConnection();
-    const id = await addTrackingData(dbUser.value, {
+    const id = await addTrackingData(await dbStore.getDbUser(), {
       employee: userStore.employee,
       ...entry,
     });
@@ -85,11 +49,11 @@ const trackingStore = defineStore("tracking", () => {
   };
 
   const destroyDeletedItems = async () => {
-    await ensureDbConnection();
     const promises: Promise<void>[] = [];
+    const dbUser = await dbStore.getDbUser();
     trackedSegments.value.forEach((seg) => {
       if (seg.deleted) {
-        promises.push(removeTrackingData(dbUser.value, seg._id));
+        promises.push(removeTrackingData(dbUser, seg._id));
       }
     });
     await Promise.all(promises);
