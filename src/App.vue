@@ -8,9 +8,9 @@
     </div>
     <v-main>
       <router-view></router-view>
-      <div class="nav" v-if="store.loggedIn">
+      <div class="nav" v-if="store.isAdmin">
         <router-link to="/tracking">Zeiterfassung</router-link>
-        <router-link to="/check-ins">Check-Ins</router-link>
+        <router-link to="/tracking/overview">Alle Daten</router-link>
       </div>
     </v-main>
   </v-app>

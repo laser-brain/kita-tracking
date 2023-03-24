@@ -3,6 +3,7 @@ import useUsers from "@/stores/user-store";
 import Tracker from "@/components/Tracker.vue";
 import CheckIn from "@/components/CheckIn.vue";
 import LoginView from "@/components/LoginView.vue";
+import TrackerOverview from "@/components/TrackerOverview.vue";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -27,6 +28,14 @@ const routes: RouteRecordRaw[] = [
       requiresAuth: true,
     },
   },
+  {
+    path: "/tracking/overview",
+    component: TrackerOverview,
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+    },
+  },
 ];
 
 const router = createRouter({
@@ -40,6 +49,12 @@ router.beforeEach((to, from, next) => {
     if (!store.loggedIn) {
       next({ name: "login" });
     } else {
+      if (
+        to.matched.some((record) => record.meta.requiresAdmin) &&
+        !store.isAdmin
+      ) {
+        next(from);
+      }
       next();
     }
   } else {

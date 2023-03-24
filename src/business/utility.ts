@@ -36,3 +36,21 @@ export const updateTimeFromString = (referenceDate: Date, value: string) => {
   );
   return referenceDate;
 };
+
+export const updateDateFromString = (referenceDate: Date, value: string) => {
+  if (!value) {
+    return undefined;
+  }
+  const timeParts = value.split(".");
+  if (timeParts.length !== 3) {
+    throw new Error("Invalid date format");
+  }
+
+  referenceDate.setDate(parseInt(timeParts[0]));
+  referenceDate.setMonth(parseInt(timeParts[1]) - 1);
+  const year = timeParts[2];
+
+  referenceDate.setFullYear(parseInt(year.length === 2 ? `20${year}` : year));
+
+  return updateTimeFromString(referenceDate, "00:00:00");
+};

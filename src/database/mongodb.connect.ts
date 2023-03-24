@@ -17,6 +17,8 @@ export interface IUser {
 
 interface ICheckPasswordResult {
   success: boolean;
+  username: string;
+  isAdmin: boolean;
 }
 
 export const authenticate = async (): Promise<IUser | null> => {
@@ -37,12 +39,27 @@ export const getEmployees = async (user: any): Promise<IEmployee[]> =>
 export const getTrackingData = async (
   user: any,
   employee: string,
-  dateFrom: Date
-): Promise<ITrackingDataDocument[]> =>
-  read<ITrackingDataDocument[]>(user, "time-tracking", {
-    employee: employee,
-    startTime: { $gte: dateFrom },
-  });
+  dateFrom?: Date,
+  dateTo?: Date
+): Promise<ITrackingDataDocument[]> => {
+  const filter: {
+    employee?: string;
+    startTime?: { $gte?: Date; $lte?: Date };
+  } = {};
+  if (employee) {
+    filter.employee = employee;
+  }
+  if (dateFrom || dateTo) {
+    filter.startTime = {};
+    if (dateFrom) {
+      filter.startTime.$gte = dateFrom;
+    }
+    if (dateTo) {
+      filter.startTime.$lte = dateTo;
+    }
+  }
+  return read<ITrackingDataDocument[]>(user, "time-tracking", filter);
+};
 
 export const addTrackingData = async (
   user: any,

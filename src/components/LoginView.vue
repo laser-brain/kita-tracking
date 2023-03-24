@@ -1,5 +1,6 @@
 <template>
   <div class="flex col start offset">
+    <progress-overlay :show="showLoader" fullscreen />
     <v-card>
       <v-card-text>
         <v-text-field
@@ -37,6 +38,7 @@
   </div>
 </template>
 <script setup lang="ts">
+import ProgressOverlay from "@/components/ProgressOverlay.vue";
 import { ref } from "vue";
 import useUser from "@/stores/user-store";
 import router from "@/plugins/router";
@@ -57,7 +59,8 @@ const rules = {
 
 const login = async () => {
   showLoader.value = true;
-  store.logIn(user.value, password.value);
+  await store.logIn(user.value, password.value);
+  showLoader.value = false;
 };
 </script>
 <style scoped lang="scss">

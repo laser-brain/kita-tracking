@@ -28,6 +28,11 @@ const trackingStore = defineStore("tracking", () => {
     return data;
   };
 
+  const loadTrackingOverview = async (dateFrom?: Date, dateTo?: Date) => {
+    const data = await getTrackingData(await dbStore.getDbUser(), "", dateFrom, dateTo);
+    return data;
+  };
+
   const loadTrackingData = async () => {
     const data = await getTrackingData(
       await dbStore.getDbUser(),
@@ -67,6 +72,7 @@ const trackingStore = defineStore("tracking", () => {
     saveTrackingData,
     trackedSegments,
     destroyDeletedItems,
+    loadTrackingOverview,
   };
 });
 
