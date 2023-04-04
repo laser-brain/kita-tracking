@@ -1,9 +1,9 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
 import useUsers from "@/stores/user-store";
-import Tracker from "@/components/Tracker.vue";
-import CheckIn from "@/components/CheckIn.vue";
+import Tracker from "@/components/time-tracking/Tracker.vue";
+import CheckIn from "@/components/check-ins/CheckIn.vue";
 import LoginView from "@/components/LoginView.vue";
-import TrackerOverview from "@/components/TrackerOverview.vue";
+import TrackerOverview from "@/components/time-tracking/TrackerOverview.vue";
 
 const routes: RouteRecordRaw[] = [
   {
