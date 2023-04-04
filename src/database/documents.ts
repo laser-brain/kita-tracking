@@ -15,3 +15,8 @@ export interface IEmployee {
   _id?: string;
   name: string;
 }
+
+export interface IPupil {
+  name: string;
+  weeklyTimeRequired: number;
+}

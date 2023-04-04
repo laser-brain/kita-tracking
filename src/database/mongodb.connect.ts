@@ -1,11 +1,12 @@
 import * as Realm from "realm-web";
 import {
   IEmployee,
+  IPupil,
   ITrackingDataDocument,
   ObjectId,
 } from "@/database/documents";
 
-type collection = "time-tracking" | "employees";
+type collection = "time-tracking" | "employees" | "children";
 
 interface DBResult<T> {
   result: T;
@@ -19,6 +20,8 @@ interface ICheckPasswordResult {
   success: boolean;
   username: string;
   isAdmin: boolean;
+  isEducator: boolean;
+  isParent: boolean;
 }
 
 export const authenticate = async (): Promise<IUser | null> => {
@@ -59,6 +62,13 @@ export const getTrackingData = async (
     }
   }
   return read<ITrackingDataDocument[]>(user, "time-tracking", filter);
+};
+
+export const getPupils = async (
+  user: any,
+  username: string
+): Promise<IPupil[]> => {
+  return read<IPupil[]>(user, "children", { parent: username });
 };
 
 export const addTrackingData = async (

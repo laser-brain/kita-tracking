@@ -2,7 +2,7 @@
   <v-app>
     <div class="flex row greeting">
       <h2 class="">
-        {{ store.loggedIn ? `Hallo ${store.employee}` : "Login" }}
+        {{ store.loggedIn ? `Hallo ${store.username}` : "Login" }}
       </h2>
       <v-btn v-if="store.loggedIn" @click="store.logOut">Abmelden</v-btn>
     </div>
@@ -11,6 +11,8 @@
       <div class="nav" v-if="store.isAdmin">
         <router-link to="/tracking">Zeiterfassung</router-link>
         <router-link to="/tracking/overview">Alle Daten</router-link>
+        <router-link to="/check-ins">Check-Ins</router-link>
+        <router-link to="/Configuration">Bedarf</router-link>
       </div>
     </v-main>
   </v-app>

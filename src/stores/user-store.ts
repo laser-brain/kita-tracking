@@ -7,33 +7,44 @@ import { ref, Ref } from "vue";
 interface ILocalUser {
   username: string;
   isAdmin: boolean;
+  isEducator: boolean;
+  isParent: boolean;
 }
 
 const store = defineStore("users", () => {
   const dbStore = useDatabase();
   const localUser = JSON.parse(
     localStorage.getItem("tracking-user") ||
-      JSON.stringify({ username: null, isAdmin: false })
+      JSON.stringify({
+        username: null,
+        isAdmin: false,
+        isEducator: false,
+        isParent: false,
+      })
   ) as ILocalUser;
 
   const loggedIn = ref(localUser.username !== null);
   const isAdmin = ref(localUser.isAdmin);
-  const employee: Ref<string> = ref(localUser.username || "");
+  const isEducator = ref(localUser.isEducator);
+  const isParent = ref(localUser.isParent);
+  const username: Ref<string> = ref(localUser.username || "");
 
-  const logIn = async (username: string, password: string) => {
+  const logIn = async (loginName: string, password: string) => {
     const result = await checkPassword(
       await dbStore.getDbUser(),
-      username,
+      loginName,
       password
     );
     if (result.success) {
       loggedIn.value = true;
-      employee.value = result.username;
+      username.value = result.username;
       isAdmin.value = result.isAdmin;
+      isParent.value = result.isParent;
+      isEducator.value = result.isEducator;
 
       localStorage.setItem(
         "tracking-user",
-        JSON.stringify({ username: result.username, isAdmin: result.isAdmin })
+        JSON.stringify({ ...result, success: undefined })
       );
 
       router.push("/tracking");
@@ -42,7 +53,7 @@ const store = defineStore("users", () => {
 
   const logOut = () => {
     loggedIn.value = false;
-    employee.value = "";
+    username.value = "";
     localStorage.removeItem("tracking-user");
     localStorage.removeItem("tracking-admin");
     router.push("/");
@@ -52,8 +63,10 @@ const store = defineStore("users", () => {
     loggedIn,
     logIn,
     logOut,
-    employee,
+    username,
     isAdmin,
+    isEducator,
+    isParent,
   };
 });
 
