@@ -29,14 +29,19 @@ const trackingStore = defineStore("tracking", () => {
   };
 
   const loadTrackingOverview = async (dateFrom?: Date, dateTo?: Date) => {
-    const data = await getTrackingData(await dbStore.getDbUser(), "", dateFrom, dateTo);
+    const data = await getTrackingData(
+      await dbStore.getDbUser(),
+      "",
+      dateFrom,
+      dateTo
+    );
     return data;
   };
 
   const loadTrackingData = async () => {
     const data = await getTrackingData(
       await dbStore.getDbUser(),
-      userStore.employee,
+      userStore.username,
       getMidnight()
     );
     trackedSegments.value = data;
@@ -44,7 +49,7 @@ const trackingStore = defineStore("tracking", () => {
 
   const saveTrackingData = async (entry: ITrackingEntry) => {
     const id = await addTrackingData(await dbStore.getDbUser(), {
-      employee: userStore.employee,
+      employee: userStore.username,
       ...entry,
     });
     if (id) {
