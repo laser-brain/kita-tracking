@@ -1,7 +1,7 @@
 import * as Realm from "realm-web";
 import {
   IEmployee,
-  IPupil,
+  IChild,
   ITrackingDataDocument,
   ObjectId,
 } from "@/database/documents";
@@ -37,7 +37,7 @@ export const authenticate = async (): Promise<IUser | null> => {
 };
 
 export const getEmployees = async (user: any): Promise<IEmployee[]> =>
-  read(user, "employees");
+  read(user, "employees", { isEducator: true });
 
 export const getTrackingData = async (
   user: any,
@@ -64,11 +64,22 @@ export const getTrackingData = async (
   return read<ITrackingDataDocument[]>(user, "time-tracking", filter);
 };
 
-export const getPupils = async (
+export const getChildren = async (
   user: any,
   username: string
-): Promise<IPupil[]> => {
-  return read<IPupil[]>(user, "children", { parent: username });
+): Promise<IChild[]> => {
+  return read<IChild[]>(user, "children", { parent: username });
+};
+
+export const updateChildren = async (
+  user: any,
+  children: IChild[]
+): Promise<void> => {
+  const promises: Promise<ObjectId | undefined>[] = [];
+  children.forEach(async (child) =>
+    promises.push(write<IChild>(user, "children", child))
+  );
+  await Promise.all(promises);
 };
 
 export const addTrackingData = async (

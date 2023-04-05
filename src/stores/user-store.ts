@@ -47,15 +47,31 @@ const store = defineStore("users", () => {
         JSON.stringify({ ...result, success: undefined })
       );
 
+      navigateStartPage();
+    }
+  };
+
+  const navigateStartPage = () => {
+    if (isEducator.value) {
       router.push("/tracking");
+    } else if (isAdmin.value) {
+      router.push("/tracking/overview");
+    } else if (isParent.value) {
+      router.push("/check-ins/configuration");
+    } else {
+      alert(
+        "Nutzer ist falsch konfiguiert. Bitte melden Sie sich bei einem Administrator (admin@kita-matschzwerge.de)"
+      );
     }
   };
 
   const logOut = () => {
     loggedIn.value = false;
+    isAdmin.value = false;
+    isEducator.value = false;
+    isParent.value = false;
     username.value = "";
     localStorage.removeItem("tracking-user");
-    localStorage.removeItem("tracking-admin");
     router.push("/");
   };
 
@@ -63,6 +79,7 @@ const store = defineStore("users", () => {
     loggedIn,
     logIn,
     logOut,
+    navigateStartPage,
     username,
     isAdmin,
     isEducator,

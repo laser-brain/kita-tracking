@@ -41,11 +41,10 @@
 import ProgressOverlay from "@/components/ProgressOverlay.vue";
 import { ref } from "vue";
 import useUser from "@/stores/user-store";
-import router from "@/plugins/router";
 
 const store = useUser();
 if (store.loggedIn) {
-  router.push("/tracking");
+  store.navigateStartPage();
 }
 
 const user = ref("");

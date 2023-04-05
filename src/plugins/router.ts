@@ -30,7 +30,7 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
-    path: "/configuration",
+    path: "/check-ins/configuration",
     component: TimesConfiguration,
     meta: {
       requiresAuth: true,

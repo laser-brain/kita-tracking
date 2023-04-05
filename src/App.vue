@@ -8,11 +8,23 @@
     </div>
     <v-main>
       <router-view></router-view>
-      <div class="nav" v-if="store.isAdmin">
-        <router-link to="/tracking">Zeiterfassung</router-link>
-        <router-link to="/tracking/overview">Alle Daten</router-link>
-        <router-link to="/check-ins">Check-Ins</router-link>
-        <router-link to="/Configuration">Bedarf</router-link>
+      <div class="nav" v-if="store.loggedIn">
+        <router-link v-if="store.isEducator" to="/tracking"
+          >Zeiterfassung</router-link
+        >
+        <router-link
+          v-if="store.isAdmin && (store.isParent || store.isEducator)"
+          to="/tracking/overview"
+          >Alle Daten</router-link
+        >
+        <router-link v-if="store.isEducator" to="/check-ins"
+          >Check-Ins</router-link
+        >
+        <router-link
+          v-if="store.isParent && (store.isAdmin || store.isEducator)"
+          to="/check-ins/configuration"
+          >Bedarf</router-link
+        >
       </div>
     </v-main>
   </v-app>
