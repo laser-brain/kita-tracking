@@ -22,12 +22,12 @@
                 v-bind="props"
                 :title="
                   req === child.defaultTimeRequirement
-                    ? `Standardwerte (${sumHours(req.requirements)}/35)`
+                    ? `Regelbedarf (${sumHours(req.requirements)}/35 Std)`
                     : `${dayToString(
                         req.requirements.at(0)?.day
                       )} - ${dayToString(
                         req.requirements.at(-1)?.day
-                      )} (${sumHours(req.requirements)}/35)`
+                      )} (${sumHours(req.requirements)}/35 Std)`
                 "
               />
             </template>
@@ -49,7 +49,7 @@
       </v-card-text>
       <v-card-actions class="right" v-if="!dbLoading">
         <v-switch
-          label="Standardwerte für neue Wochen automatisch übernehmen"
+          label="Regelbedarf automatisch nutzen, sofern kein Wochenbedarf eingetragen ist"
           v-model="child.autoApplyDefaultValues"
           :color="child.autoApplyDefaultValues ? 'teal-darken-4' : 'gray'"
         />
@@ -59,9 +59,9 @@
       </v-card-actions>
       <v-card-actions v-if="!dbLoading"
         ><span v-if="!child.autoApplyDefaultValues"
-          >Hinweis: Bei gesetzten Standardwerten muss der Bedarf nur noch in
-          Ausnahmefällen die vom Standard abweichen angepasst werden. Weitere
-          Konfiguration ist dann sonst nicht mehr notwendig</span
+          >Hinweis: Bei gesetztem Regelbedarf muss der Bedarf nur noch in
+          Ausnahmefällen die davon abweichen angepasst werden. Weitere
+          Konfiguration ist dann sonst nicht mehr notwendig.</span
         ></v-card-actions
       >
     </v-card>
@@ -129,6 +129,8 @@ const save = async () => {
 </script>
 <style scoped lang="scss">
 .header {
+  display: flex;
+  justify-content: center;
   padding: 0.5em;
 }
 .container {
@@ -136,7 +138,8 @@ const save = async () => {
     flex-direction: row;
     justify-content: space-evenly;
   }
-  align-items: center;
+  align-items: flex-start;
+  padding-top: 2em;
   height: 100%;
 }
 
@@ -164,6 +167,7 @@ hr {
   @media screen and (orientation: portrait) {
     justify-content: flex-end;
   }
+
   div {
     min-width: 90px;
     padding: 0 0.25em;
