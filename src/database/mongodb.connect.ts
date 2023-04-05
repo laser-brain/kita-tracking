@@ -66,9 +66,15 @@ export const getTrackingData = async (
 
 export const getChildren = async (
   user: any,
-  username: string
+  username?: string
 ): Promise<IChild[]> => {
-  return read<IChild[]>(user, "children", { parent: username });
+  const filter: {
+    parent?: string;
+  } = {};
+  if (username) {
+    filter.parent = username;
+  }
+  return read<IChild[]>(user, "children", filter);
 };
 
 export const updateChildren = async (

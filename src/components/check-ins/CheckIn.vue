@@ -69,111 +69,51 @@
   </div>
 </template>
 <script setup lang="ts">
+import { getMidnight } from "@/business/utility";
 import { computed, onBeforeUnmount, onMounted, Ref, ref } from "vue";
+import useChildren from "@/stores/children-store";
+import { IChild, ITimeRequirement } from "@/database/documents";
 
-const loadFromLocal = (): Ref<ICheckinProps> => {
-  const dummyData: IChild[] = [
-    {
-      name: "Biene",
-      regularTime: "08:30 - 15:30 (7h)",
-      checkedIn: true,
-      arrivalTime: new Date(),
-    },
-    {
-      name: "Hase",
-      regularTime: "08:30 - 15:30 (7h)",
-      checkedIn: false,
-    },
-    {
-      name: "Maus",
-      regularTime: "08:30 - 15:30 (7h)",
-      checkedIn: false,
-    },
-    {
-      name: "Biene",
-      regularTime: "08:30 - 15:30 (7h)",
-      checkedIn: false,
-    },
-    {
-      name: "Hase",
-      regularTime: "08:30 - 15:30 (7h)",
-      checkedIn: false,
-    },
-    {
-      name: "Maus",
-      regularTime: "08:30 - 15:30 (7h)",
-      checkedIn: false,
-    },
-    {
-      name: "Biene",
-      regularTime: "08:30 - 15:30 (7h)",
-      checkedIn: false,
-    },
-    {
-      name: "Hase",
-      regularTime: "08:30 - 15:30 (7h)",
-      checkedIn: false,
-    },
-    {
-      name: "Maus",
-      regularTime: "08:30 - 15:30 (7h)",
-      checkedIn: false,
-    },
-    {
-      name: "Biene",
-      regularTime: "08:30 - 15:30 (7h)",
-      checkedIn: false,
-    },
-    {
-      name: "Hase",
-      regularTime: "08:30 - 15:30 (7h)",
-      checkedIn: false,
-    },
-    {
-      name: "Maus",
-      regularTime: "08:30 - 15:30 (7h)",
-      checkedIn: false,
-    },
-    {
-      name: "Biene",
-      regularTime: "08:30 - 15:30 (7h)",
-      checkedIn: false,
-    },
-    {
-      name: "Hase",
-      regularTime: "08:30 - 15:30 (7h)",
-      checkedIn: false,
-    },
-    {
-      name: "Maus",
-      regularTime: "08:30 - 15:30 (7h)",
-      checkedIn: false,
-    },
-    {
-      name: "Biene",
-      regularTime: "08:30 - 15:30 (7h)",
-      checkedIn: false,
-    },
-    {
-      name: "Hase",
-      regularTime: "08:30 - 15:30 (7h)",
-      checkedIn: false,
-    },
-    {
-      name: "Maus",
-      regularTime: "08:30 - 15:30 (7h)",
-      checkedIn: false,
-    },
-  ];
+const store = useChildren();
+const daysOfWeek = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag"];
+const parseChildren = (children: IChild[]): IChildCheckinData[] => {
+  const today = getMidnight(new Date());
+  return children.map((child) => {
+    console.log(child.weeklyTimeRequired.flatMap((req) => req.requirements));
 
-  let props: Ref<ICheckinProps> = ref(
-    JSON.parse(
-      localStorage.getItem("checkin-data") ??
-        JSON.stringify({ children: dummyData })
-    )
-  );
+    let requirementToday: ITimeRequirement | undefined =
+      child.weeklyTimeRequired
+        .flatMap((req) => req.requirements)
+        .filter((item) => {
+          console.log(item.day.valueOf(), today.valueOf());
 
-  props.value.children.forEach((child) => {
+          item.day.valueOf() === getMidnight(new Date()).valueOf();
+        })[0];
+
+    if (!requirementToday && child.autoApplyDefaultValues) {
+      requirementToday = child.defaultTimeRequirement?.requirements.filter(
+        (item) => daysOfWeek.indexOf(item.day as string) === today.getDay()
+      )[0];
+    }
+    console.log(requirementToday);
+
+    return {
+      name: child.name,
+      checkedIn: false,
+      regularTime: requirementToday
+        ? `${requirementToday.timeRequired} Stunden`
+        : "unbekannt",
+    };
+  });
+};
+
+onMounted(async () => {
+  const local = localStorage.getItem("checkin-data");
+  let props: ICheckinProps = local
+    ? JSON.parse(local)
+    : { children: parseChildren(await store.loadChildren()) };
+
+  props.children.forEach((child) => {
     child.arrivalTime = child.arrivalTime
       ? new Date(child.arrivalTime)
       : child.arrivalTime;
@@ -182,25 +122,26 @@ const loadFromLocal = (): Ref<ICheckinProps> => {
       : child.pickupTime;
   });
 
-  if (!props.value.dateStamp) {
-    return ref(props);
+  if (!props.dateStamp) {
+    checkIns.value = props;
+    return;
   }
 
   const today = getMidnight();
-  const checkDate = getMidnight(props.value.dateStamp);
+  const checkDate = getMidnight(props.dateStamp);
 
   if (checkDate < today) {
-    props.value.dateStamp = today;
+    props.dateStamp = today;
   }
-  return ref(props);
-};
+  checkIns.value = props;
+});
 
 const query: Ref<string> = ref("");
 const showPickedUpChildren = ref(false);
-const childrenFiltered: Ref<IChild[]> = ref([]);
-const props = loadFromLocal();
+const childrenFiltered: Ref<IChildCheckinData[]> = ref([]);
+const checkIns: Ref<ICheckinProps> = ref({ date: new Date(), children: [] });
 const filter = computed(() => {
-  childrenFiltered.value = props.value.children.filter(
+  childrenFiltered.value = checkIns.value.children.filter(
     (child) => showPickedUpChildren.value || !child.pickupTime
   );
 
@@ -221,7 +162,7 @@ const filter = computed(() => {
   return childrenFiltered.value;
 });
 
-const toggleCheckin = (child: IChild) => {
+const toggleCheckin = (child: IChildCheckinData) => {
   if (child.checkedIn) {
     child.checkedIn = false;
     child.pickupTime = new Date();
@@ -231,7 +172,7 @@ const toggleCheckin = (child: IChild) => {
     child.pickupTime = undefined;
   }
 
-  localStorage.setItem("checkin-data", JSON.stringify(props.value));
+  localStorage.setItem("checkin-data", JSON.stringify(checkIns.value));
 };
 
 const lastChildIsVisible = ref(false);
@@ -278,7 +219,7 @@ const checkLastChildVisibility = () => {
     child.scrollHeight * childrenFiltered.value.length - container.offsetHeight;
 };
 
-interface IChild {
+interface IChildCheckinData {
   name: string;
   regularTime: string;
   checkedIn: boolean;
@@ -287,27 +228,18 @@ interface IChild {
 }
 
 interface ICheckinProps {
-  children: IChild[];
+  children: IChildCheckinData[];
   dateStamp?: Date;
 }
 
-const reset = (child: IChild) => {
+const reset = (child: IChildCheckinData) => {
   child.arrivalTime = undefined;
   child.pickupTime = undefined;
   child.checkedIn = false;
 };
 
-const checkinClass = (child: IChild) => {
+const checkinClass = (child: IChildCheckinData) => {
   return child.checkedIn ? "checked-in" : child.pickupTime ? "checked-out" : "";
-};
-
-const getMidnight = (date?: Date): Date => {
-  const result = date ? new Date(date) : new Date();
-  result.setMinutes(0);
-  result.setHours(0);
-  result.setSeconds(0);
-  result.setMilliseconds(0);
-  return result;
 };
 </script>
 <style scoped lang="scss">

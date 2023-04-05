@@ -19,7 +19,7 @@ const getFriday = (date: Date) => {
 const store = defineStore("children", () => {
   const dbStore = useDatabase();
 
-  const loadChildren = async (username: string): Promise<IChild[]> => {
+  const loadChildren = async (username?: string): Promise<IChild[]> => {
     const data = await getChildren(await dbStore.getDbUser(), username);
 
     data.forEach((child) => {
