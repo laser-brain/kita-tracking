@@ -30,15 +30,30 @@
             </template>
             <div class="time-requirements">
               <div v-for="date in req.requirements">
-                <v-text-field
-                  v-model.number="date.timeRequired"
-                  type="number"
-                  min="0"
-                  max="10"
-                  :label="dayToString(date.day)"
-                  @focus="$event.target.select()"
-                  @change="maxSumRule(date, req.requirements)"
-                ></v-text-field>
+                <label>{{
+                  `${dayToString(date.day)} (${date.timeRequired} Std)`
+                }}</label>
+                <div class="inputs">
+                  <v-text-field
+                    type="time"
+                    class="time"
+                    label="Von"
+                    v-model="date.startTime"
+                    hide-details
+                    @change="validateTimespan(date, req.requirements)"
+                    @focus="$event.target.select()"
+                  />
+                  <span>&nbsp;-&nbsp;</span>
+                  <v-text-field
+                    type="time"
+                    class="time"
+                    label="Bis"
+                    v-model="date.endTime"
+                    hide-details
+                    @change="validateTimespan(date, req.requirements)"
+                    @focus="$event.target.select()"
+                  />
+                </div>
               </div>
             </div>
           </v-list-group>
@@ -74,18 +89,52 @@
 import ProgressOverlay from "../ProgressOverlay.vue";
 import useUsers from "@/stores/user-store";
 import useChildren from "@/stores/children-store";
-import { IChild, ITimeRequirement } from "@/database/documents";
+import { IChild, ITimeRequirement, IWeeklyTime } from "@/database/documents";
 import { Ref, onMounted, ref } from "vue";
-import { IWeeklyTime } from "@/database/documents";
+import { updateTimeFromString } from "@/business/utility";
 
 const userStore = useUsers();
 const children: Ref<IChild[]> = ref([]);
 const store = useChildren();
 const dbLoading = ref(true);
 
+const weeklyMax = 35;
+const dailyMax = 8.5;
+
 const configId = "config.weekly-data-hidden";
 
 const hideWeeklyRequirements = ref(localStorage.getItem(configId) === "true");
+
+const validateTimespan = (
+  date: ITimeRequirement,
+  requirements: ITimeRequirement[]
+) => {
+  let difference = getDifference(date.startTime, date.endTime);
+  if (difference < 0) {
+    date.endTime = "";
+    return;
+  }
+
+  date.timeRequired = difference;
+
+  maxSumRule(date, requirements);
+  if (date.timeRequired !== difference) {
+    const start = updateTimeFromString(new Date(), date.startTime);
+    const end = new Date(start.valueOf() + date.timeRequired * 60 * 60 * 1000);
+    date.endTime = end.toLocaleTimeString().substring(0, 5);
+  }
+};
+
+const getDifference = (startTime: string, endTime: string) => {
+  if (!startTime || !endTime) {
+    return 0;
+  }
+
+  const start = updateTimeFromString(new Date(), startTime);
+  const end = updateTimeFromString(new Date(), endTime);
+
+  return (end.valueOf() - start.valueOf()) / (1000 * 60 * 60);
+};
 
 const itemsComputed = (child: IChild) => {
   const result = [child.defaultTimeRequirement as IWeeklyTime];
@@ -114,10 +163,10 @@ const maxSumRule = (
   date: ITimeRequirement,
   requirements: ITimeRequirement[]
 ) => {
-  if (date.timeRequired > 10) {
-    date.timeRequired = 10;
+  if (date.timeRequired > dailyMax) {
+    date.timeRequired = dailyMax;
   }
-  if (sumHours(requirements) > 35) {
+  if (sumHours(requirements) > weeklyMax) {
     date.timeRequired += getMaxForInput(requirements);
   }
 };
@@ -132,7 +181,7 @@ const dayToString = (day: Date | string | null | undefined): string => {
 };
 
 const getMaxForInput = (reqirements: ITimeRequirement[]) => {
-  const min = Math.min(10, 35 - sumHours(reqirements));
+  const min = Math.min(dailyMax, weeklyMax - sumHours(reqirements));
   return min;
 };
 
@@ -187,14 +236,13 @@ hr {
 
 .time-requirements {
   display: flex;
-  flex-wrap: wrap;
-  @media screen and (orientation: portrait) {
-    justify-content: flex-end;
-  }
-
-  div {
-    min-width: 90px;
-    padding: 0 0.25em;
+  flex-direction: column;
+  padding: 1rem;
+  .inputs {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding-bottom: 1em;
   }
 }
 

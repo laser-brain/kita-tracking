@@ -30,5 +30,7 @@ export interface IWeeklyTime {
 
 export interface ITimeRequirement {
   day: Date | string;
+  startTime: string;
+  endTime: string;
   timeRequired: number;
 }
