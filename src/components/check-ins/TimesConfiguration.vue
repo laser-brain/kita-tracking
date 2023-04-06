@@ -109,6 +109,9 @@ const validateTimespan = (
   date: ITimeRequirement,
   requirements: ITimeRequirement[]
 ) => {
+  if (!date.startTime || !date.endTime) {
+    return;
+  }
   let difference = getDifference(date.startTime, date.endTime);
   if (difference < 0) {
     date.endTime = "";
