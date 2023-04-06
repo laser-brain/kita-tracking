@@ -95,13 +95,12 @@ const parseChildren = (children: IChild[]): IChildCheckinData[] => {
         (item) => daysOfWeek.indexOf(item.day as string) === today.getDay()
       )[0];
     }
-    console.log(requirementToday);
 
     return {
       name: child.name,
       checkedIn: false,
       regularTime: requirementToday
-        ? `${requirementToday.timeRequired} Stunden`
+        ? `${requirementToday.startTime} - ${requirementToday.endTime}`
         : "unbekannt",
     };
   });
