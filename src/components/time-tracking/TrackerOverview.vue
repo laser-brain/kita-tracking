@@ -55,7 +55,7 @@
           </div>
           <hr />
           <div class="summary element">
-            <v-label>Gesamt:</v-label>
+            <v-label>Gesamt:</v-label>&nbsp;
             <span> {{ getTotal(grouped[employee][date]) }}</span>
           </div>
         </div>
@@ -236,6 +236,13 @@ onMounted(async () => {
 .filter {
   display: flex;
   flex-direction: row;
+}
+
+.summary {
+  justify-content: flex-end;
+}
+
+.filter {
   justify-content: space-between;
 }
 
