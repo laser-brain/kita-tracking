@@ -8,12 +8,9 @@
       <v-card-text v-if="!dbLoading">
         <h2>{{ child.name }}</h2>
         <hr />
-
         <v-list>
           <v-list-group
-            v-for="(req, index) in [child.defaultTimeRequirement as IWeeklyTime].concat(
-              child.weeklyTimeRequired || []
-            )"
+            v-for="(req, index) in itemsComputed(child)"
             :key="index"
             :value="index"
           >
@@ -47,12 +44,18 @@
           </v-list-group>
         </v-list>
       </v-card-text>
-      <v-card-actions class="right" v-if="!dbLoading">
+      <v-card-actions class="col" v-if="!dbLoading">
+        <v-switch
+          label="Wochenbedarf ausblenden"
+          v-model="hideWeeklyRequirements"
+          :color="hideWeeklyRequirements ? 'teal-darken-4' : 'gray'"
+          @change="toggleWeeklyDisplay" />
         <v-switch
           label="Regelbedarf automatisch nutzen, sofern kein Wochenbedarf eingetragen ist"
           v-model="child.autoApplyDefaultValues"
           :color="child.autoApplyDefaultValues ? 'teal-darken-4' : 'gray'"
-        />
+      /></v-card-actions>
+      <v-card-actions class="right" v-if="!dbLoading">
         <v-btn variant="flat" color="teal-darken-4" @click="save"
           >Speichern</v-btn
         >
@@ -79,6 +82,18 @@ const userStore = useUsers();
 const children: Ref<IChild[]> = ref([]);
 const store = useChildren();
 const dbLoading = ref(true);
+
+const configId = "config.weekly-data-hidden";
+
+const hideWeeklyRequirements = ref(localStorage.getItem(configId) === "true");
+
+const itemsComputed = (child: IChild) => {
+  const result = [child.defaultTimeRequirement as IWeeklyTime];
+  if (!hideWeeklyRequirements.value) {
+    return result.concat(child.weeklyTimeRequired || []);
+  }
+  return result;
+};
 
 onMounted(async () => {
   if (!userStore.isParent) {
@@ -121,6 +136,10 @@ const getMaxForInput = (reqirements: ITimeRequirement[]) => {
   return min;
 };
 
+const toggleWeeklyDisplay = () => {
+  localStorage.setItem(configId, hideWeeklyRequirements.value.toString());
+};
+
 const save = async () => {
   dbLoading.value = true;
   await store.save(children.value);
@@ -159,6 +178,11 @@ hr {
   &.right {
     justify-content: flex-end;
   }
+
+  &.col {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 .time-requirements {
@@ -176,6 +200,6 @@ hr {
 
 .v-switch {
   display: flex;
-  max-width: 64%;
+  width: 100%;
 }
 </style>
