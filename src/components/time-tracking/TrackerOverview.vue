@@ -145,7 +145,7 @@ const getTotal = (data: ITrackingDataDocumentExt[]) => {
         current.duration
       );
 
-      const offset = durationDateObject.getTimezoneOffset() / 60;
+      const offset = new Date(0).getTimezoneOffset() / 60;
       durationDateObject.setHours(durationDateObject.getHours() - offset);
       if (!prev.accumulated) {
         prev.accumulated = new Date(0, offset, 0);

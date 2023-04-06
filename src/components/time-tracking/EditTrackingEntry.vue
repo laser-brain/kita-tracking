@@ -5,7 +5,6 @@
       label="Von"
       v-model="startTimeString"
       hide-details
-      ref="startTimeInputRef"
       @focus="$event.target.select()"
     />
     <span> &nbsp;-&nbsp; </span>
@@ -14,7 +13,6 @@
       label="Bis"
       v-model="endTimeString"
       hide-details
-      ref="endTimeInputRef"
       @focus="$event.target.select()"
     />
   </div>
@@ -71,7 +69,7 @@ const save = async () => {
     item.duration = new Date(
       updatedEnd.valueOf() -
         updatedStart.valueOf() +
-        props.startTime.getTimezoneOffset() * 60 * 1000
+        new Date(0).getTimezoneOffset() * 60 * 1000
     ).toLocaleTimeString();
 
     await store.saveTrackingData(item);

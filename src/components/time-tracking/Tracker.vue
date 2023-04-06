@@ -24,6 +24,7 @@ import { updateTimeFromString } from "@/business/utility";
 
 const store = useTracking();
 const initialized = ref(false);
+const timeSpanOffset = new Date(0).getTimezoneOffset() * 60 * 1000;
 
 onMounted(async () => {
   await store.loadTrackingData();
@@ -37,33 +38,24 @@ onMounted(async () => {
 
 const runningTracker: Ref<ITrackingEntry | undefined> = ref(undefined);
 
-const getTimeSpan = (startTime: Date, endTime?: Date) => {
-  if (!endTime) {
-    return new Date(startTime.getTimezoneOffset() * 60 * 1000);
-  }
-  return new Date(endTime.valueOf() - startTime.valueOf());
-};
-
 const trackedTimeFormatted = computed(() => {
   if (!initialized.value || !store.trackedSegments?.length) {
     return "00:00:00";
   }
 
-  const now = new Date();
-
   const emptyTracker = {
     startTime: new Date(0),
     running: false,
-    accumulatedTime: new Date(now.getTimezoneOffset() * 60 * 1000),
+    accumulatedTime: new Date(timeSpanOffset),
   };
 
-  let trackedToday = store.trackedSegments.reduce((prev, current) => {
+  const trackedToday = store.trackedSegments.reduce((prev, current) => {
     if (!current?.duration) {
       return prev;
     }
 
     const timeSpan = updateTimeFromString(new Date(0), current.duration);
-    timeSpan.setHours(timeSpan.getHours() - timeSpan.getTimezoneOffset() / 60);
+    timeSpan.setHours(timeSpan.getHours() - timeSpanOffset / (60 * 60 * 1000));
 
     return {
       startTime: current.startTime,
@@ -87,6 +79,7 @@ const currentSegmentFormatted = computed(() => {
 const toggle = async () => {
   const now = new Date();
   now.setMilliseconds(0);
+
   if (runningTracker.value) {
     runningTracker.value.running = false;
     await store.saveTrackingData(runningTracker.value);
@@ -107,10 +100,8 @@ window.setInterval(() => {
     now.setMilliseconds(0);
     runningTracker.value.endTime = now;
 
-    const offset =
-      runningTracker.value.startTime.getTimezoneOffset() * 60 * 1000;
     runningTracker.value.duration = new Date(
-      now.valueOf() - runningTracker.value.startTime.valueOf() + offset
+      now.valueOf() - runningTracker.value.startTime.valueOf() + timeSpanOffset
     ).toLocaleTimeString();
   }
 }, 1000);
