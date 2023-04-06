@@ -7,7 +7,7 @@
       hide-details
       @focus="$event.target.select()"
     />
-    <span> &nbsp;-&nbsp; </span>
+    <span>&nbsp;-&nbsp;</span>
     <v-text-field
       class="time"
       label="Bis"
@@ -49,34 +49,36 @@ const deleted = ref(false);
 
 const save = async () => {
   const item = store.trackedSegments.at(props.index);
-  if (item) {
-    const updatedStart = updateTimeFromString(
-      new Date(props.startTime),
-      startTimeString.value
-    );
-    const updatedEnd = updateTimeFromString(
-      new Date(props.endTime),
-      endTimeString.value
-    );
-
-    if (updatedStart > updatedEnd) {
-      await reset(true);
-      return;
-    }
-
-    item.startTime = updatedStart;
-    item.endTime = updatedEnd;
-    item.duration = new Date(
-      updatedEnd.valueOf() -
-        updatedStart.valueOf() +
-        new Date(0).getTimezoneOffset() * 60 * 1000
-    ).toLocaleTimeString();
-
-    await store.saveTrackingData(item);
-
-    startTimeString.value = item.startTime.toLocaleTimeString();
-    endTimeString.value = item.endTime.toLocaleTimeString();
+  if (!item) {
+    return;
   }
+
+  const updatedStart = updateTimeFromString(
+    new Date(props.startTime),
+    startTimeString.value
+  );
+  const updatedEnd = updateTimeFromString(
+    new Date(props.endTime),
+    endTimeString.value
+  );
+
+  if (updatedStart > updatedEnd) {
+    await reset(true);
+    return;
+  }
+
+  item.startTime = updatedStart;
+  item.endTime = updatedEnd;
+  item.duration = new Date(
+    updatedEnd.valueOf() -
+      updatedStart.valueOf() +
+      new Date(0).getTimezoneOffset() * 60 * 1000
+  ).toLocaleTimeString();
+
+  await store.saveTrackingData(item);
+
+  startTimeString.value = item.startTime.toLocaleTimeString();
+  endTimeString.value = item.endTime.toLocaleTimeString();
 };
 
 const reset = async (soft: boolean = false) => {
