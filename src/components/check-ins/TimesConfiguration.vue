@@ -217,8 +217,12 @@ const save = async () => {
 hr {
   margin: 1em 0;
 }
+
 .v-card {
   min-width: min(100vw, 400px);
+  &:not(:first()) {
+    margin-top: 2em;
+  }
 }
 
 .v-card-actions {
@@ -234,6 +238,10 @@ hr {
   &.col {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  span {
+    max-width: 640px;
   }
 }
 
