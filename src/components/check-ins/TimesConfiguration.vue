@@ -4,7 +4,7 @@
   </div>
   <div class="container">
     <progress-overlay :show="dbLoading" />
-    <v-card v-for="child in children">
+    <v-card v-for="(child, ci) in children">
       <v-card-text v-if="!dbLoading">
         <h2>{{ child.name }}</h2>
         <hr />
@@ -19,12 +19,12 @@
                 v-bind="props"
                 :title="
                   req === child.defaultTimeRequirement
-                    ? `Regelbedarf (${sumHours(req.requirements)}/35 Std)`
+                    ? `Regelbedarf (${summaryComputed[ci][index]}/35 Std)`
                     : `${dayToString(
                         req.requirements.at(0)?.day
-                      )} - ${dayToString(
-                        req.requirements.at(-1)?.day
-                      )} (${sumHours(req.requirements)}/35 Std)`
+                      )} - ${dayToString(req.requirements.at(-1)?.day)} (${
+                        summaryComputed[ci][index]
+                      }/35 Std)`
                 "
               />
             </template>
@@ -90,7 +90,7 @@ import ProgressOverlay from "../ProgressOverlay.vue";
 import useUsers from "@/stores/user-store";
 import useChildren from "@/stores/children-store";
 import { IChild, ITimeRequirement, IWeeklyTime } from "@/database/documents";
-import { Ref, onMounted, ref } from "vue";
+import { Ref, computed, onMounted, ref } from "vue";
 import { updateTimeFromString } from "@/business/utility";
 
 const userStore = useUsers();
@@ -100,6 +100,9 @@ const dbLoading = ref(true);
 
 const weeklyMax = 35;
 const dailyMax = 8.5;
+const dailyStartMinimum = new Date();
+dailyStartMinimum.setHours(7);
+dailyStartMinimum.setMinutes(30);
 
 const configId = "config.weekly-data-hidden";
 
@@ -109,10 +112,21 @@ const validateTimespan = (
   date: ITimeRequirement,
   requirements: ITimeRequirement[]
 ) => {
-  if (!date.startTime || !date.endTime) {
+  if (!date.startTime) {
     return;
   }
-  let difference = getDifference(date.startTime, date.endTime);
+
+  let start = updateTimeFromString(new Date(), date.startTime);
+  if (start < dailyStartMinimum) {
+    start = dailyStartMinimum;
+    date.startTime = start.toLocaleTimeString().substring(0, 5);
+  }
+
+  if (!date.endTime) {
+    return;
+  }
+  const end = updateTimeFromString(new Date(), date.endTime);
+  let difference = getDifference(start, end);
   if (difference < 0) {
     date.endTime = "";
     return;
@@ -128,15 +142,12 @@ const validateTimespan = (
   }
 };
 
-const getDifference = (startTime: string, endTime: string) => {
+const getDifference = (startTime: Date, endTime: Date) => {
   if (!startTime || !endTime) {
     return 0;
   }
 
-  const start = updateTimeFromString(new Date(), startTime);
-  const end = updateTimeFromString(new Date(), endTime);
-
-  return (end.valueOf() - start.valueOf()) / (1000 * 60 * 60);
+  return (endTime.valueOf() - startTime.valueOf()) / (1000 * 60 * 60);
 };
 
 const itemsComputed = (child: IChild) => {
@@ -154,6 +165,12 @@ onMounted(async () => {
   }
   children.value = await store.loadChildren(userStore.username);
   dbLoading.value = false;
+});
+
+const summaryComputed = computed(() => {
+  return children.value.map((child) => {
+    return itemsComputed(child).map((item) => sumHours(item.requirements) || 0);
+  });
 });
 
 const sumHours = (requirements: ITimeRequirement[]) => {
