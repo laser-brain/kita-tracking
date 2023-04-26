@@ -89,6 +89,18 @@
         ></v-card-actions
       >
     </v-card>
+    <v-snackbar
+      v-model="showError"
+      :absolute="true"
+      location="top"
+      timeout="-1"
+    >
+      {{ errorMessage }}
+
+      <template v-slot:actions>
+        <v-btn variant="text" @click="showError = false"> Verstanden </v-btn>
+      </template>
+    </v-snackbar>
   </div>
 </template>
 <script setup lang="ts">
@@ -109,6 +121,9 @@ const dailyMax = 8.5;
 const dailyStartMinimum = new Date();
 dailyStartMinimum.setHours(7);
 dailyStartMinimum.setMinutes(30);
+
+const showError = ref(false);
+const errorMessage = ref("");
 
 const configId = "config.weekly-data-hidden";
 
@@ -194,6 +209,9 @@ const maxSumRule = (
   }
   if (sumHours(requirements) > weeklyMax) {
     date.timeRequired += getMaxForInput(requirements);
+    showError.value = true;
+    errorMessage.value =
+      "Die maximal erlaubte Wochenstundenzahl wurde überschritten. Die letzte Eingabe wurde entsprechend korrigiert!";
   }
 };
 
