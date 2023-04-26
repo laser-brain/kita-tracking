@@ -31,7 +31,7 @@
             <div class="time-requirements">
               <div v-for="date in req.requirements">
                 <label>{{
-                  `${dayToString(date.day)} (${date.timeRequired} Std)`
+                  `${dayToString(date.day, true)} (${date.timeRequired} Std)`
                 }}</label>
                 <div class="inputs">
                   <v-text-field
@@ -125,6 +125,8 @@ dailyStartMinimum.setMinutes(30);
 const showError = ref(false);
 const errorMessage = ref("");
 
+const daysOfWeek = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag"];
+
 const configId = "config.weekly-data-hidden";
 
 const hideWeeklyRequirements = ref(localStorage.getItem(configId) === "true");
@@ -215,13 +217,21 @@ const maxSumRule = (
   }
 };
 
-const dayToString = (day: Date | string | null | undefined): string => {
+const dayToString = (
+  day: Date | string | null | undefined,
+  includeWeekday: boolean = false
+): string => {
   if (!day) {
     return "";
   }
-  return day instanceof Date
-    ? (day as Date).toLocaleDateString()
-    : day.toString();
+  if (day instanceof Date) {
+    let dateString = (day as Date).toLocaleDateString();
+    if (includeWeekday) {
+      dateString = `${daysOfWeek[(day as Date).getDay() - 1]} ${dateString}`;
+    }
+    return dateString;
+  }
+  return day.toString();
 };
 
 const getMaxForInput = (reqirements: ITimeRequirement[]) => {
