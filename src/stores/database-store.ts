@@ -7,7 +7,9 @@ const store = defineStore("database", () => {
   const loading = ref(true);
   const dbUser: Ref<IUser | null> = ref(null);
   const loadDbUser = async () => {
-    dbUser.value = await authenticate();
+    if (!dbUser.value) {
+      dbUser.value = await authenticate();
+    }
   };
 
   loadDbUser().then(() => {

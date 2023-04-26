@@ -6,7 +6,7 @@ import {
   ObjectId,
 } from "@/database/documents";
 
-type collection = "time-tracking" | "employees" | "children";
+type collection = "time-tracking" | "people" | "children";
 
 interface DBResult<T> {
   result: T;
@@ -37,7 +37,7 @@ export const authenticate = async (): Promise<IUser | null> => {
 };
 
 export const getEmployees = async (user: any): Promise<IEmployee[]> =>
-  read(user, "employees", { isEducator: true });
+  read(user, "people", { isEducator: true });
 
 export const getTrackingData = async (
   user: any,
