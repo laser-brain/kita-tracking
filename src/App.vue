@@ -4,6 +4,9 @@
       <h2 class="">
         {{ store.loggedIn ? `Hallo ${store.username}` : "Login" }}
       </h2>
+      <v-btn v-if="store.loggedIn" @click="router.push('/set-password')"
+        >Passwort ändern</v-btn
+      >
       <v-btn v-if="store.loggedIn" @click="store.logOut">Abmelden</v-btn>
     </div>
     <v-main>
@@ -31,6 +34,7 @@
 </template>
 <script setup lang="ts">
 import useUsers from "@/stores/user-store";
+import router from "@/plugins/router";
 
 const store = useUsers();
 </script>

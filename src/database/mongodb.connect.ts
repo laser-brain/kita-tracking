@@ -16,12 +16,16 @@ export interface IUser {
   functions: any;
 }
 
-interface ICheckPasswordResult {
+interface IDatabaseResult {
   success: boolean;
+}
+
+interface ICheckPasswordResult extends IDatabaseResult {
   username: string;
   isAdmin: boolean;
   isEducator: boolean;
   isParent: boolean;
+  requirePasswordSetup: boolean;
 }
 
 export const authenticate = async (): Promise<IUser | null> => {
@@ -110,7 +114,18 @@ export const checkPassword = async (
   password: string
 ) => {
   const result = await user.functions.checkPassword(username, password);
+  console.log(result);
+
   return result as ICheckPasswordResult;
+};
+
+export const updatePassword = async (
+  user: any,
+  username: string,
+  password: string
+) => {
+  const result = await user.functions.updatePassword(username, password);
+  return result as IDatabaseResult;
 };
 
 const write = async <T>(

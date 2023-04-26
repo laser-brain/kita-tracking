@@ -5,6 +5,7 @@ import CheckIn from "@/components/check-ins/CheckIn.vue";
 import LoginView from "@/components/LoginView.vue";
 import TrackerOverview from "@/components/time-tracking/TrackerOverview.vue";
 import TimesConfiguration from "@/components/check-ins/TimesConfiguration.vue";
+import UpdatePassword from "@/components/UpdatePassword.vue";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -42,6 +43,13 @@ const routes: RouteRecordRaw[] = [
     meta: {
       requiresAuth: true,
       requiresAdmin: true,
+    },
+  },
+  {
+    path: "/set-password",
+    component: UpdatePassword,
+    meta: {
+      requiresAuth: true,
     },
   },
 ];

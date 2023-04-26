@@ -1,7 +1,10 @@
 import router from "@/plugins/router";
 import { defineStore } from "pinia";
 import useDatabase from "@/stores/database-store";
-import { checkPassword } from "@/database/mongodb.connect";
+import {
+  checkPassword,
+  updatePassword as pwUpdate,
+} from "@/database/mongodb.connect";
 import { ref, Ref } from "vue";
 
 interface ILocalUser {
@@ -27,7 +30,7 @@ const store = defineStore("users", () => {
   const isAdmin = ref(localUser.isAdmin);
   const isEducator = ref(localUser.isEducator);
   const isParent = ref(localUser.isParent);
-  const username: Ref<string> = ref(localUser.username || "");
+  const username = ref(localUser.username || "");
 
   const logIn = async (loginName: string, password: string) => {
     const result = await checkPassword(
@@ -47,12 +50,18 @@ const store = defineStore("users", () => {
         JSON.stringify({ ...result, success: undefined })
       );
 
-      navigateStartPage();
+      navigateStartPage(result.requirePasswordSetup);
     }
   };
 
-  const navigateStartPage = () => {
-    if (isEducator.value) {
+  const updatePassword = async (password: string) => {
+    return pwUpdate(await dbStore.getDbUser(), username.value, password);
+  };
+
+  const navigateStartPage = (forcePasswordReset: boolean = false) => {
+    if (forcePasswordReset) {
+      router.push("/set-password");
+    } else if (isEducator.value) {
       router.push("/tracking");
     } else if (isAdmin.value) {
       router.push("/tracking/overview");
@@ -79,6 +88,7 @@ const store = defineStore("users", () => {
     loggedIn,
     logIn,
     logOut,
+    updatePassword,
     navigateStartPage,
     username,
     isAdmin,
