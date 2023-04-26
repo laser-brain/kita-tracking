@@ -28,10 +28,14 @@ const trackingStore = defineStore("tracking", () => {
     return data;
   };
 
-  const loadTrackingOverview = async (dateFrom?: Date, dateTo?: Date) => {
+  const loadTrackingOverview = async (
+    dateFrom?: Date,
+    dateTo?: Date,
+    employee: string = ""
+  ) => {
     const data = await getTrackingData(
       await dbStore.getDbUser(),
-      "",
+      employee,
       dateFrom,
       dateTo
     );
@@ -48,6 +52,8 @@ const trackingStore = defineStore("tracking", () => {
   };
 
   const saveTrackingData = async (entry: ITrackingEntry) => {
+    console.log(entry);
+
     const id = await addTrackingData(await dbStore.getDbUser(), {
       employee: userStore.username,
       ...entry,

@@ -12,13 +12,20 @@
     </template>
     <v-card>
       <v-toolbar dark color="teal-darken-4">
-        <v-toolbar-title>Heute Erfasste Zeiten</v-toolbar-title>
+        <v-toolbar-title>Erfasste Zeiten</v-toolbar-title>
         <v-btn icon dark @click="finalize">
           <v-icon color="white" icon="mdi-close"></v-icon>
         </v-btn>
       </v-toolbar>
       <v-divider></v-divider>
-      <v-list lines="two" subheader>
+      <div class="selectDate">
+        <input
+          type="date"
+          :value="selectedDate"
+          @change="onSelectedDateChanged"
+        />
+      </div>
+      <v-list lines="two" subheader v-if="store.trackedSegments.length">
         <v-list-group
           v-for="(item, index) in store.trackedSegments.filter(
             (i) => i.endTime
@@ -54,15 +61,46 @@
           >
         </div>
       </v-list>
+      <v-label v-else>Keine Daten erfasst</v-label>
     </v-card>
   </v-dialog>
 </template>
 <script setup lang="ts">
 import EditTrackingEntry from "./EditTrackingEntry.vue";
-import useTracking from "@/stores/tracker-store";
-import { ref } from "vue";
+import useTracking, { ITrackingEntry } from "@/stores/tracker-store";
+import useUsers from "@/stores/user-store";
+import { ref, Ref, onMounted } from "vue";
 
 const store = useTracking();
+const user = useUsers();
+
+const formatDate = (date: Date) => {
+  return `${date.getFullYear()}-${(date.getMonth() + 1)
+    .toString()
+    .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
+};
+
+const selectedDate = ref(formatDate(new Date()));
+
+onMounted(async () => {
+  await loadEntries();
+});
+
+const onSelectedDateChanged = async (e: Event) => {
+  selectedDate.value = (e.target as HTMLInputElement).value;
+  await loadEntries();
+};
+
+const loadEntries = async () => {
+  const from = new Date(selectedDate.value);
+  const to = new Date(selectedDate.value);
+  to.setDate(from.getDate() + 1);
+  store.trackedSegments = await store.loadTrackingOverview(
+    from,
+    to,
+    user.username
+  );
+};
 
 type voidEvents = "finalize";
 const emit = defineEmits<{
@@ -71,7 +109,9 @@ const emit = defineEmits<{
 
 const dialog = ref(false);
 
-const finalize = () => {
+const finalize = async () => {
+  selectedDate.value = formatDate(new Date());
+  await loadEntries();
   dialog.value = false;
   emit("finalize");
 };
@@ -91,6 +131,17 @@ const finalize = () => {
   button {
     min-height: 4em;
     padding: 1em 2em;
+  }
+}
+
+.selectDate {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  input {
+    font-size: 1.5em;
   }
 }
 </style>
