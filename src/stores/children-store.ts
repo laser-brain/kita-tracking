@@ -62,13 +62,18 @@ const store = defineStore("children", () => {
         for (let i = 0; i < 5; i++) {
           const date = new Date(previousFriday);
           date.setDate(previousFriday.getDate() + 3 + i);
-          requirements.push({
+          const req: ITimeRequirement = {
             day: date,
-            timeRequired:
-              child.autoApplyDefaultValues && child.defaultTimeRequirement
-                ? child.defaultTimeRequirement.requirements[i].timeRequired
-                : 0,
-          });
+            timeRequired: 0,
+          };
+          if (child.autoApplyDefaultValues && child.defaultTimeRequirement) {
+            req.timeRequired =
+              child.defaultTimeRequirement.requirements[i].timeRequired;
+            req.startTime =
+              child.defaultTimeRequirement.requirements[i].startTime;
+            req.endTime = child.defaultTimeRequirement.requirements[i].endTime;
+          }
+          requirements.push(req);
         }
         child.weeklyTimeRequired.push({
           requirements: requirements,
