@@ -38,6 +38,9 @@
                     type="time"
                     class="time"
                     label="Von"
+                    min="07:30"
+                    max="16:00"
+                    step="900"
                     v-model="date.startTime"
                     hide-details
                     @change="validateTimespan(date, req.requirements)"
@@ -48,6 +51,9 @@
                     type="time"
                     class="time"
                     label="Bis"
+                    min="07:30"
+                    max="16:00"
+                    step="900"
                     v-model="date.endTime"
                     hide-details
                     @change="validateTimespan(date, req.requirements)"
