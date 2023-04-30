@@ -1,94 +1,94 @@
 <template>
-  <div class="header">
-    <h2>Bedarfsmeldung der nächsten vier Wochen</h2>
-  </div>
   <div class="container">
+    <h3>Bedarfsmeldung der nächsten vier Wochen</h3>
     <progress-overlay :show="dbLoading" />
-    <v-card v-for="(child, ci) in children">
-      <v-card-text v-if="!dbLoading">
-        <h2>{{ child.name }}</h2>
-        <hr />
-        <v-list>
-          <v-list-group
-            v-for="(req, index) in itemsComputed(child)"
-            :key="index"
-            :value="index"
-          >
-            <template #activator="{ props }">
-              <v-list-item
-                v-bind="props"
-                :title="
-                  req === child.defaultTimeRequirement
-                    ? `Regelbedarf (${summaryComputed[ci][index]}/35 Std)`
-                    : `${dayToString(
-                        req.requirements.at(0)?.day
-                      )} - ${dayToString(req.requirements.at(-1)?.day)} (${
-                        summaryComputed[ci][index]
-                      }/35 Std)`
-                "
-              />
-            </template>
-            <div class="time-requirements">
-              <div v-for="date in req.requirements">
-                <label>{{
-                  `${dayToString(date.day, true)} (${date.timeRequired} Std)`
-                }}</label>
-                <div class="inputs">
-                  <v-text-field
-                    type="time"
-                    class="time"
-                    label="Von"
-                    min="07:30"
-                    max="16:00"
-                    step="900"
-                    v-model="date.startTime"
-                    hide-details
-                    @change="validateTimespan(date, req.requirements)"
-                    @focus="$event.target.select()"
-                  />
-                  <span>&nbsp;-&nbsp;</span>
-                  <v-text-field
-                    type="time"
-                    class="time"
-                    label="Bis"
-                    min="07:30"
-                    max="16:00"
-                    step="900"
-                    v-model="date.endTime"
-                    hide-details
-                    @change="validateTimespan(date, req.requirements)"
-                    @focus="$event.target.select()"
-                  />
+    <div class="data">
+      <v-card v-for="(child, ci) in children">
+        <v-card-text v-if="!dbLoading">
+          <h2>{{ child.name }}</h2>
+          <hr />
+          <v-list>
+            <v-list-group
+              v-for="(req, index) in itemsComputed(child)"
+              :key="index"
+              :value="index"
+            >
+              <template #activator="{ props }">
+                <v-list-item
+                  v-bind="props"
+                  :title="
+                    req === child.defaultTimeRequirement
+                      ? `Regelbedarf (${summaryComputed[ci][index]}/35 Std)`
+                      : `${dayToString(
+                          req.requirements.at(0)?.day
+                        )} - ${dayToString(req.requirements.at(-1)?.day)} (${
+                          summaryComputed[ci][index]
+                        }/35 Std)`
+                  "
+                />
+              </template>
+              <div class="time-requirements">
+                <div v-for="date in req.requirements">
+                  <label>{{
+                    `${dayToString(date.day, true)} (${date.timeRequired} Std)`
+                  }}</label>
+                  <div class="inputs">
+                    <v-text-field
+                      type="time"
+                      class="time"
+                      label="Von"
+                      min="07:30"
+                      max="16:00"
+                      step="900"
+                      v-model="date.startTime"
+                      hide-details
+                      @change="validateTimespan(date, req.requirements)"
+                      @focus="$event.target.select()"
+                    />
+                    <span>&nbsp;-&nbsp;</span>
+                    <v-text-field
+                      type="time"
+                      class="time"
+                      label="Bis"
+                      min="07:30"
+                      max="16:00"
+                      step="900"
+                      v-model="date.endTime"
+                      hide-details
+                      @change="validateTimespan(date, req.requirements)"
+                      @focus="$event.target.select()"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          </v-list-group>
-        </v-list>
-      </v-card-text>
-      <v-card-actions class="col" v-if="!dbLoading">
-        <v-switch
-          label="Wochenbedarf ausblenden"
-          v-model="hideWeeklyRequirements"
-          :color="hideWeeklyRequirements ? 'teal-darken-4' : 'gray'"
-          @change="toggleWeeklyDisplay" />
-        <v-switch
-          label="Regelbedarf automatisch nutzen, sofern kein Wochenbedarf eingetragen ist"
-          v-model="child.autoApplyDefaultValues"
-          :color="child.autoApplyDefaultValues ? 'teal-darken-4' : 'gray'"
-      /></v-card-actions>
-      <v-card-actions class="right" v-if="!dbLoading">
-        <v-btn variant="flat" color="teal-darken-4" @click="save"
-          >Speichern</v-btn
+            </v-list-group>
+          </v-list>
+        </v-card-text>
+        <v-card-actions class="col" v-if="!dbLoading">
+          <v-switch
+            label="Wochenbedarf ausblenden"
+            v-model="hideWeeklyRequirements"
+            :color="hideWeeklyRequirements ? 'teal-darken-4' : 'gray'"
+            @change="toggleWeeklyDisplay" />
+          <v-switch
+            label="Regelbedarf automatisch nutzen, sofern kein Wochenbedarf eingetragen ist"
+            v-model="child.autoApplyDefaultValues"
+            :color="child.autoApplyDefaultValues ? 'teal-darken-4' : 'gray'"
+        /></v-card-actions>
+        <v-card-actions class="right" v-if="!dbLoading">
+          <v-btn variant="flat" color="teal-darken-4" @click="save"
+            >Speichern</v-btn
+          >
+        </v-card-actions>
+        <v-card-actions v-if="!dbLoading"
+          ><span v-if="!child.autoApplyDefaultValues"
+            >Hinweis: Bei gesetztem Regelbedarf muss der Bedarf nur noch in
+            Ausnahmefällen die davon abweichen angepasst werden. Weitere
+            Konfiguration ist dann sonst nicht mehr notwendig.</span
+          ></v-card-actions
         >
-      </v-card-actions>
-      <v-card-actions v-if="!dbLoading"
-        ><span v-if="!child.autoApplyDefaultValues"
-          >Hinweis: Bei gesetztem Regelbedarf muss der Bedarf nur noch in
-          Ausnahmefällen die davon abweichen angepasst werden. Weitere
-          Konfiguration ist dann sonst nicht mehr notwendig.</span
-        ></v-card-actions
-      >
-    </v-card>
+      </v-card>
+    </div>
     <v-snackbar
       v-model="showError"
       :absolute="true"
@@ -250,30 +250,27 @@ const save = async () => {
 };
 </script>
 <style scoped lang="scss">
-.header {
+.data {
   display: flex;
-  justify-content: center;
-  padding: 0.5em;
-}
-.container {
+  flex-wrap: wrap;
   @media screen and (orientation: landscape) {
     flex-direction: row;
     justify-content: space-evenly;
   }
   align-items: flex-start;
-  padding-top: 2em;
   height: 100%;
-}
+  width: 100%;
 
+  overflow: auto;
+  position: relative;
+}
 hr {
   margin: 1em 0;
 }
 
 .v-card {
-  min-width: min(100vw, 400px);
-  &:not(:first()) {
-    margin-top: 2em;
-  }
+  width: min(100vw, 512px);
+  margin-top: 2em;
 }
 
 .v-card-actions {
