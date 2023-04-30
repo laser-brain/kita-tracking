@@ -20,12 +20,8 @@
           to="/tracking/overview"
           >Alle Daten</router-link
         >
-        <router-link v-if="store.isEducator" to="/check-ins"
-          >Check-Ins</router-link
-        >
-        <router-link
-          v-if="store.isParent && (store.isAdmin || store.isEducator)"
-          to="/check-ins/configuration"
+        <router-link to="/check-ins">Bringen / Abholen</router-link>
+        <router-link v-if="store.isParent" to="/check-ins/configuration"
           >Bedarf</router-link
         >
       </div>

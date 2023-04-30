@@ -3,6 +3,7 @@
     <h3>Zeiterfassung Kinder</h3>
     <div>
       <v-switch
+        v-if="enableAllChildren"
         v-model="showPickedUpChildren"
         label="Abgeholte Kinder anzeigen"
         color="#004d40"
@@ -19,7 +20,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr v-if="enableAllChildren">
             <td colspan="3" class="query-row">
               <v-text-field
                 id="query"
@@ -72,9 +73,14 @@
 import { getMidnight } from "@/business/utility";
 import { computed, onBeforeUnmount, onMounted, Ref, ref } from "vue";
 import useChildren from "@/stores/children-store";
+import useUsers from "@/stores/user-store";
 import { IChild, ITimeRequirement } from "@/database/documents";
 
 const store = useChildren();
+const user = useUsers();
+
+const enableAllChildren = user.isAdmin || user.isEducator;
+
 const daysOfWeek = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag"];
 const parseChildren = (children: IChild[]): IChildCheckinData[] => {
   const today = getMidnight(new Date());
@@ -100,17 +106,20 @@ const parseChildren = (children: IChild[]): IChildCheckinData[] => {
       name: child.name,
       checkedIn: false,
       regularTime: requirementToday
-        ? `${requirementToday.startTime} - ${requirementToday.endTime}`
+        ? `${requirementToday.startTime || "Nicht konfiguriert!"} - ${
+            requirementToday.endTime || "Nicht konfiguriert!"
+          }`
         : "unbekannt",
     };
   });
 };
 
 onMounted(async () => {
-  const local = localStorage.getItem("checkin-data");
-  let props: ICheckinProps = local
-    ? JSON.parse(local)
-    : { children: parseChildren(await store.loadChildren()) };
+  const props: ICheckinProps = {
+    children: parseChildren(
+      await store.loadChildren(enableAllChildren ? undefined : user.username)
+    ),
+  };
 
   props.children.forEach((child) => {
     child.arrivalTime = child.arrivalTime

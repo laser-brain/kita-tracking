@@ -66,7 +66,7 @@ const store = defineStore("users", () => {
     } else if (isAdmin.value) {
       router.push("/tracking/overview");
     } else if (isParent.value) {
-      router.push("/check-ins/configuration");
+      router.push("/check-ins");
     } else {
       alert(
         "Nutzer ist falsch konfiguiert. Bitte melden Sie sich bei einem Administrator (admin@kita-matschzwerge.de)"
