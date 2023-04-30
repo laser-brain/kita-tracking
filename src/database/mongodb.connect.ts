@@ -2,6 +2,7 @@ import * as Realm from "realm-web";
 import {
   IEmployee,
   IChild,
+  IChildCheckinData,
   ITrackingDataDocument,
   ObjectId,
 } from "@/database/documents";
@@ -92,6 +93,35 @@ export const updateChildren = async (
   await Promise.all(promises);
 };
 
+export const addCheckinData = async (
+  user: any,
+  data: IChildCheckinData,
+  reset: boolean = false
+) => {
+  const child = (
+    (await read(user, "children", { name: data.name })) as IChild[]
+  )[0];
+
+  if (!child) {
+    throw new Error(`Could not load child ${data.name} from database`);
+  } else if (!child.checkinHistory) {
+    child.checkinHistory = [];
+  }
+  if (reset) {
+    child.checkinHistory.pop();
+  } else if (data.pickupTime) {
+    const previousDataset = child.checkinHistory.at(-1);
+    if (previousDataset) {
+      previousDataset.pickupTime = data.pickupTime;
+      previousDataset.checkedIn = data.checkedIn;
+    }
+  } else {
+    child.checkinHistory.push(data);
+  }
+
+  await write(user, "children", child);
+};
+
 export const addTrackingData = async (
   user: any,
   data: ITrackingDataDocument
@@ -114,8 +144,6 @@ export const checkPassword = async (
   password: string
 ) => {
   const result = await user.functions.checkPassword(username, password);
-  console.log(result);
-
   return result as ICheckPasswordResult;
 };
 

@@ -1,6 +1,11 @@
 import { getMidnight } from "@/business/utility";
-import { IChild, ITimeRequirement } from "@/database/documents";
 import {
+  IChild,
+  IChildCheckinData,
+  ITimeRequirement,
+} from "@/database/documents";
+import {
+  addCheckinData,
   getChildren as getChildren,
   updateChildren,
 } from "@/database/mongodb.connect";
@@ -78,9 +83,20 @@ const store = defineStore("children", () => {
         child.weeklyTimeRequired.push({
           requirements: requirements,
         });
+
+        if (!child.checkinHistory) {
+          child.checkinHistory = [];
+        }
       }
     });
     return data;
+  };
+
+  const updateCheckin = async (
+    checkinData: IChildCheckinData,
+    reset: boolean = false
+  ) => {
+    return addCheckinData(await dbStore.getDbUser(), checkinData, reset);
   };
 
   const save = async (children: IChild[]) => {
@@ -89,6 +105,7 @@ const store = defineStore("children", () => {
 
   return {
     loadChildren,
+    updateCheckin,
     save,
   };
 });

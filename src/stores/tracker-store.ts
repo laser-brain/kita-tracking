@@ -52,8 +52,6 @@ const trackingStore = defineStore("tracking", () => {
   };
 
   const saveTrackingData = async (entry: ITrackingEntry) => {
-    console.log(entry);
-
     const id = await addTrackingData(await dbStore.getDbUser(), {
       employee: userStore.username,
       ...entry,

@@ -74,7 +74,16 @@ import { getMidnight } from "@/business/utility";
 import { computed, onBeforeUnmount, onMounted, Ref, ref } from "vue";
 import useChildren from "@/stores/children-store";
 import useUsers from "@/stores/user-store";
-import { IChild, ITimeRequirement } from "@/database/documents";
+import {
+  IChild,
+  IChildCheckinData,
+  ITimeRequirement,
+} from "@/database/documents";
+
+interface ICheckinProps {
+  children: IChildCheckinData[];
+  dateStamp?: Date;
+}
 
 const store = useChildren();
 const user = useUsers();
@@ -83,22 +92,26 @@ const enableAllChildren = user.isAdmin || user.isEducator;
 
 const daysOfWeek = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag"];
 const parseChildren = (children: IChild[]): IChildCheckinData[] => {
-  const today = getMidnight(new Date());
+  const midnight = getMidnight();
   return children.map((child) => {
-    console.log(child.weeklyTimeRequired.flatMap((req) => req.requirements));
+    const lastHistoryElement = child.checkinHistory.at(-1);
+    if (lastHistoryElement?.arrivalTime) {
+      if (lastHistoryElement.arrivalTime > midnight) {
+        return lastHistoryElement;
+      }
+    }
 
     let requirementToday: ITimeRequirement | undefined =
       child.weeklyTimeRequired
         .flatMap((req) => req.requirements)
         .filter((item) => {
-          console.log(item.day.valueOf(), today.valueOf());
-
-          item.day.valueOf() === getMidnight(new Date()).valueOf();
+          item.day.valueOf() === midnight.valueOf();
         })[0];
 
     if (!requirementToday && child.autoApplyDefaultValues) {
       requirementToday = child.defaultTimeRequirement?.requirements.filter(
-        (item) => daysOfWeek.indexOf(item.day as string) === today.getDay()
+        (item) =>
+          daysOfWeek.indexOf(item.day as string) === midnight.getDay() - 1
       )[0];
     }
 
@@ -170,7 +183,7 @@ const filter = computed(() => {
   return childrenFiltered.value;
 });
 
-const toggleCheckin = (child: IChildCheckinData) => {
+const toggleCheckin = async (child: IChildCheckinData) => {
   if (child.checkedIn) {
     child.checkedIn = false;
     child.pickupTime = new Date();
@@ -180,7 +193,7 @@ const toggleCheckin = (child: IChildCheckinData) => {
     child.pickupTime = undefined;
   }
 
-  localStorage.setItem("checkin-data", JSON.stringify(checkIns.value));
+  await store.updateCheckin(child);
 };
 
 const lastChildIsVisible = ref(false);
@@ -227,23 +240,12 @@ const checkLastChildVisibility = () => {
     child.scrollHeight * childrenFiltered.value.length - container.offsetHeight;
 };
 
-interface IChildCheckinData {
-  name: string;
-  regularTime: string;
-  checkedIn: boolean;
-  arrivalTime?: Date;
-  pickupTime?: Date;
-}
-
-interface ICheckinProps {
-  children: IChildCheckinData[];
-  dateStamp?: Date;
-}
-
-const reset = (child: IChildCheckinData) => {
+const reset = async (child: IChildCheckinData) => {
   child.arrivalTime = undefined;
   child.pickupTime = undefined;
   child.checkedIn = false;
+
+  await store.updateCheckin(child, true);
 };
 
 const checkinClass = (child: IChildCheckinData) => {

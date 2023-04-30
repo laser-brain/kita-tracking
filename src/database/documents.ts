@@ -22,6 +22,15 @@ export interface IChild {
   defaultTimeRequirement?: IWeeklyTime;
   weeklyTimeRequired: IWeeklyTime[];
   autoApplyDefaultValues: boolean;
+  checkinHistory: IChildCheckinData[];
+}
+
+export interface IChildCheckinData {
+  name: string;
+  regularTime: string;
+  checkedIn: boolean;
+  arrivalTime?: Date;
+  pickupTime?: Date;
 }
 
 export interface IWeeklyTime {
