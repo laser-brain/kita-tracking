@@ -79,7 +79,8 @@ export const getChildren = async (
   if (username) {
     filter.parent = username;
   }
-  return read<IChild[]>(user, "children", filter);
+  const sort = { lastName: 1 };
+  return read<IChild[]>(user, "children", filter, sort);
 };
 
 export const updateChildren = async (
@@ -168,11 +169,13 @@ const write = async <T>(
 const read = async <T>(
   user: any,
   collection: collection,
-  filter?: any
+  filter?: any,
+  sort?: any
 ): Promise<T> => {
   const data: DBResult<T> = await user.functions.collectionRequest(
     collection,
-    filter
+    filter,
+    sort
   );
 
   return data.result;
