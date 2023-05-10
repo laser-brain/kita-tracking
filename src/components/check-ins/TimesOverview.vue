@@ -1,16 +1,20 @@
 <template>
-  <div class="scroll">
-    <h1>{{ referenceDate?.toLocaleDateString() }}</h1>
-    <bar-chart :chartData="barChartData" />
+  <h1>Bedarfsmeldung der nächsten vier Wochen</h1>
+  <div v-for="(item, index) in overviewData" :key="index">
+    <h2 v-if="index % 5 === 0">KW {{ getWeek(item.referenceDate) }}</h2>
+    <h3>{{ item.referenceDate.toLocaleDateString() }}</h3>
+    <bar-chart :chartData="item.barChartData" :options="barChartOptions" />
+    <hr v-if="(index + 1) % 5 === 0 && index !== overviewData.length - 1" />
   </div>
 </template>
 <script setup lang="ts">
 import useChildren from "@/stores/children-store";
-import { IChild, ITimeRequirement, IWeeklyTime } from "@/database/documents";
+import router from "@/plugins/router";
+import { IChild, ITimeRequirement } from "@/database/documents";
 import { onMounted, ref, Ref } from "vue";
-import { useTheme } from "vuetify";
 import { BarChart } from "vue-chart-3";
-import { endOfWeek, addDays, addMinutes } from "date-fns";
+import { addDays, addMinutes, getWeek } from "date-fns";
+import { updateTimeFromString } from "@/business/utility";
 import {
   Chart,
   BarController,
@@ -20,8 +24,13 @@ import {
   Tooltip,
   ChartData,
   Legend,
+  ChartOptions,
 } from "chart.js";
-import { updateTimeFromString } from "@/business/utility";
+
+interface IDailyOverview {
+  referenceDate: Date;
+  barChartData: ChartData<"bar">;
+}
 
 Chart.register(
   BarController,
@@ -31,47 +40,99 @@ Chart.register(
   Tooltip,
   Legend
 );
+
 const store = useChildren();
 const children: Ref<IChild[]> = ref([]);
+const overviewData: Ref<IDailyOverview[]> = ref([]);
+const barChartOptions: ChartOptions = {
+  responsive: true,
+};
 
-const referenceDate: Ref<Date | undefined> = ref();
-const barChartData: Ref<ChartData<"bar">> = ref({ labels: [], datasets: [] });
+function getRandomInt(min: number, max: number) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+const scrambleDataForDemoMode = () => {
+  const demoMode = router.currentRoute.value.query["randomize"];
+  if (demoMode !== undefined) {
+    for (let child of children.value) {
+      for (let i = 0; i < child.weeklyTimeRequired.length; i++) {
+        for (
+          let j = 0;
+          j < child.weeklyTimeRequired[i].requirements.length;
+          j++
+        ) {
+          const startHour = getRandomInt(7, 9);
+          const endHour = getRandomInt(12, 16);
+          child.weeklyTimeRequired[i].requirements[j] = {
+            day: child.weeklyTimeRequired[i].requirements[j].day,
+            timeRequired: endHour - startHour,
+            startTime: `0${startHour}:${startHour === 7 ? "3" : "0"}0`,
+            endTime: `${endHour}:00`,
+          };
+        }
+      }
+    }
+  }
+};
 
 onMounted(async () => {
   children.value = await store.loadChildren();
-  console.log(children.value.filter((x) => x.name === "Linus Zink"));
+  scrambleDataForDemoMode();
+  const requirementDays = children.value.flatMap((child) => {
+    return child.weeklyTimeRequired.flatMap((week) =>
+      week.requirements.map((req) => (req.day as Date).valueOf())
+    );
+  });
+  const min = new Date(Math.min(...requirementDays));
+  const max = addDays(new Date(Math.max(...requirementDays)), 1);
 
-  const dates: Date[] = [];
-  referenceDate.value = addDays(endOfWeek(new Date(), { weekStartsOn: 1 }), 1);
-  let date: Date = referenceDate.value;
-  date.setHours(7);
-  date.setMinutes(0);
-  date.setSeconds(0);
-  date.setMilliseconds(0);
+  let referenceDate: Date = min;
 
-  while (dates.length < 10 * 4 - 1) {
-    dates.push(date);
-    date = addMinutes(date, 15);
-
-    if (dates.length === 18) {
-      console.log(date, getChildrenForHour(date));
+  while (referenceDate <= max) {
+    const day = referenceDate.getDay();
+    if (day > 0 && day <= 5) {
+      initDay(referenceDate);
     }
+    referenceDate = addDays(referenceDate, 1);
+  }
+});
+
+const initDay = (referenceDate: Date) => {
+  const quarterHours: Date[] = [];
+
+  let timestamp: Date = referenceDate;
+  timestamp.setHours(7);
+  timestamp.setMinutes(30);
+  timestamp.setSeconds(0);
+  timestamp.setMilliseconds(0);
+
+  while (quarterHours.length < 8.5 * 4 + 1) {
+    quarterHours.push(timestamp);
+    timestamp = addMinutes(timestamp, 15);
   }
 
-  const data = dates.map((date) => getChildrenForHour(date));
-  barChartData.value = {
-    labels: dates.map((date) => date.toLocaleTimeString().substring(0, 5)),
-    datasets: [
-      {
-        label: "1 - 15",
-        data: data,
-        backgroundColor: data.map(mapColor),
-        borderColor: "black",
-        borderWidth: 2,
-      },
-    ],
-  };
-});
+  const data = quarterHours.map((timestamp) => getChildrenForHour(timestamp));
+  overviewData.value.push({
+    referenceDate: referenceDate,
+    barChartData: {
+      labels: quarterHours.map((timestamp) =>
+        timestamp.toLocaleTimeString().substring(0, 5)
+      ),
+      datasets: [
+        {
+          label: "Anzahl Kinder",
+          data: data,
+          backgroundColor: data.map(mapColor),
+          borderColor: "black",
+          borderWidth: 2,
+        },
+      ],
+    },
+  });
+};
 
 const mapColor = (count: number) => {
   if (count > 30) {
@@ -82,20 +143,20 @@ const mapColor = (count: number) => {
   return "green";
 };
 
-const getChildrenForHour = (hour: Date): number => {
+const getChildrenForHour = (timestamp: Date): number => {
   const result = children.value
     .map((child) => {
       return child.weeklyTimeRequired.flatMap((req) => req.requirements);
     })
     .filter((req) => {
-      return filterConfig(hour, req);
+      return filterConfig(timestamp, req);
     }).length;
 
   return result;
 };
 
 const filterConfig = (
-  hour: Date,
+  timestamp: Date,
   requirements: ITimeRequirement[]
 ): boolean => {
   for (let req of requirements) {
@@ -104,8 +165,8 @@ const filterConfig = (
       req.startTime !== null &&
       req.endTime !== undefined &&
       req.endTime !== null &&
-      updateTimeFromString(req.day as Date, req.startTime) <= hour &&
-      updateTimeFromString(req.day as Date, req.endTime) >= hour
+      updateTimeFromString(req.day as Date, req.startTime) <= timestamp &&
+      updateTimeFromString(req.day as Date, req.endTime) >= timestamp
     ) {
       return true;
     }
@@ -113,4 +174,20 @@ const filterConfig = (
   return false;
 };
 </script>
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+h1 {
+  width: 100%;
+  text-align: center;
+}
+
+h2,
+h3,
+hr {
+  margin-top: 2em;
+}
+
+hr {
+  background-color: black;
+  height: 0.5em;
+}
+</style>
