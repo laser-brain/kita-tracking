@@ -4,10 +4,12 @@
       <h2 class="">
         {{ store.loggedIn ? `Hallo ${store.username}` : "Login" }}
       </h2>
-      <v-btn v-if="store.loggedIn" @click="router.push('/set-password')"
-        >Passwort ändern</v-btn
-      >
-      <v-btn v-if="store.loggedIn" @click="store.logOut">Abmelden</v-btn>
+      <div class="flex">
+        <v-btn v-if="store.loggedIn" @click="store.logOut">Abmelden</v-btn>
+        <v-btn v-if="store.loggedIn" @click="router.push('/set-password')"
+          >Passwort ändern</v-btn
+        >
+      </div>
     </div>
     <v-main>
       <router-view></router-view>
@@ -22,6 +24,8 @@
         >
         <router-link to="/check-ins">Bringen / Abholen</router-link>
         <router-link v-if="store.isParent" to="/check-ins/configuration"
+          >Bedarf</router-link
+        ><router-link v-if="store.isEducator" to="/check-ins/overview"
           >Bedarf</router-link
         >
       </div>
@@ -47,10 +51,15 @@ body,
 
 .flex {
   display: flex;
+  flex-direction: column;
   &.row {
     flex-direction: row;
   }
   justify-content: space-between;
+}
+
+.v-btn {
+  margin: 0.25em;
 }
 
 .v-application {

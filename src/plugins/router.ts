@@ -6,6 +6,7 @@ import LoginView from "@/components/LoginView.vue";
 import TrackerOverview from "@/components/time-tracking/TrackerOverview.vue";
 import TimesConfiguration from "@/components/check-ins/TimesConfiguration.vue";
 import UpdatePassword from "@/components/UpdatePassword.vue";
+import Overvue from "@/components/check-ins/Overview.vue";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -33,6 +34,13 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/check-ins/configuration",
     component: TimesConfiguration,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: "/check-ins/overview",
+    component: Overvue,
     meta: {
       requiresAuth: true,
     },

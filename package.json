@@ -10,9 +10,12 @@
     "surge": "yarn build && xcopy .\\dist\\index.html .\\dist\\200.html /i /Y && surge ./dist kita-tracking.surge.sh"
   },
   "dependencies": {
+    "chart.js": "^4.3.0",
+    "date-fns": "^2.30.0",
     "pinia": "^2.0.33",
     "realm-web": "^2.0.0",
     "vue": "^3.2.47",
+    "vue-chart-3": "^3.1.8",
     "vue-router": "^4.1.6",
     "vuetify": "^3.1.2"
   },
