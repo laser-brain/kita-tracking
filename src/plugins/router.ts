@@ -6,7 +6,7 @@ import LoginView from "@/components/LoginView.vue";
 import TrackerOverview from "@/components/time-tracking/TrackerOverview.vue";
 import TimesConfiguration from "@/components/check-ins/TimesConfiguration.vue";
 import UpdatePassword from "@/components/UpdatePassword.vue";
-import Overvue from "@/components/check-ins/Overview.vue";
+import Overvue from "@/components/check-ins/TimesOverview.vue";
 
 const routes: RouteRecordRaw[] = [
   {
