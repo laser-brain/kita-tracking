@@ -102,7 +102,7 @@ $greeting-dist-top: 16vh;
   height: calc(
     100vh -
       (
-        8vh + 1.28em + $nav-btn-padding-vertical * 2 + $nav-btn-border * 2 +
+        16vh + 1.28em + $nav-btn-padding-vertical * 2 + $nav-btn-border * 2 +
           $nav-dist * 2 + 30px
       )
   );
