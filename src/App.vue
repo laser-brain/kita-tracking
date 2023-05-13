@@ -25,7 +25,9 @@
         <router-link to="/check-ins">Bringen / Abholen</router-link>
         <router-link v-if="store.isParent" to="/check-ins/configuration"
           >Bedarf</router-link
-        ><router-link v-if="store.isEducator" to="/check-ins/overview"
+        ><router-link
+          v-if="store.isEducator && store.isAdmin"
+          to="/check-ins/overview"
           >Bedarf</router-link
         >
       </div>
