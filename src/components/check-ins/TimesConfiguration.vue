@@ -109,7 +109,7 @@ import useUsers from "@/stores/user-store";
 import useChildren from "@/stores/children-store";
 import { IChild, ITimeRequirement, IWeeklyTime } from "@/database/documents";
 import { Ref, computed, onMounted, ref } from "vue";
-import { updateTimeFromString } from "@/business/utility";
+import { sumHours, updateTimeFromString } from "@/business/utility";
 
 const userStore = useUsers();
 const children: Ref<IChild[]> = ref([]);
@@ -136,6 +136,7 @@ const validateTimespan = (
   requirements: ITimeRequirement[]
 ) => {
   if (!date.startTime) {
+    date.timeRequired = 0;
     return;
   }
 
@@ -146,12 +147,14 @@ const validateTimespan = (
   }
 
   if (!date.endTime) {
+    date.timeRequired = 0;
     return;
   }
   const end = updateTimeFromString(new Date(), date.endTime);
   let difference = getDifference(start, end);
   if (difference < 0) {
     date.endTime = "";
+    date.timeRequired = 0;
     return;
   }
 
@@ -196,12 +199,6 @@ const summaryComputed = computed(() => {
   });
 });
 
-const sumHours = (requirements: ITimeRequirement[]) => {
-  return requirements
-    .map((date) => date.timeRequired)
-    .reduce((prev, current) => prev + current, 0);
-};
-
 const maxSumRule = (
   date: ITimeRequirement,
   requirements: ITimeRequirement[]
@@ -234,8 +231,8 @@ const dayToString = (
   return day.toString();
 };
 
-const getMaxForInput = (reqirements: ITimeRequirement[]) => {
-  const min = Math.min(dailyMax, weeklyMax - sumHours(reqirements));
+const getMaxForInput = (requirements: ITimeRequirement[]) => {
+  const min = Math.min(dailyMax, weeklyMax - sumHours(requirements));
   return min;
 };
 
@@ -245,7 +242,15 @@ const toggleWeeklyDisplay = () => {
 
 const save = async () => {
   dbLoading.value = true;
-  await store.save(children.value);
+  showError.value = false;
+  const result = await store.save(children.value);
+  if (result.length === 0) {
+    showError.value = true;
+    errorMessage.value =
+      "Die maximal erlaubte Wochenstundenzahl wurde überschritten. Bitte prüfe die eingetragenen Zeiten!";
+  } else {
+    children.value = result;
+  }
   dbLoading.value = false;
 };
 </script>

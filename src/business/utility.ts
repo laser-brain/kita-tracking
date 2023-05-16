@@ -1,3 +1,5 @@
+import { ITimeRequirement } from "@/database/documents";
+
 export const wait = (
   checkInterval: number,
   condition: () => boolean
@@ -53,4 +55,10 @@ export const updateDateFromString = (referenceDate: Date, value: string) => {
   referenceDate.setFullYear(parseInt(year.length === 2 ? `20${year}` : year));
 
   return updateTimeFromString(referenceDate, "00:00:00");
+};
+
+export const sumHours = (requirements: ITimeRequirement[]) => {
+  return requirements
+    .map((date) => date.timeRequired)
+    .reduce((prev, current) => prev + current, 0);
 };

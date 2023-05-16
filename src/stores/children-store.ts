@@ -1,4 +1,4 @@
-import { getMidnight } from "@/business/utility";
+import { getMidnight, sumHours } from "@/business/utility";
 import {
   IChild,
   IChildCheckinData,
@@ -99,8 +99,36 @@ const store = defineStore("children", () => {
     return addCheckinData(await dbStore.getDbUser(), checkinData, reset);
   };
 
-  const save = async (children: IChild[]) => {
-    return updateChildren(await dbStore.getDbUser(), children);
+  const save = async (children: IChild[]): Promise<IChild[]> => {
+    for (let child of children) {
+      for (let req of child.weeklyTimeRequired) {
+        for (let i = 0; i < req.requirements.length; i++) {
+          if (req.requirements[i].timeRequired === 0) {
+            req.requirements[i].startTime =
+              child.defaultTimeRequirement?.requirements[i].startTime;
+            req.requirements[i].endTime =
+              child.defaultTimeRequirement?.requirements[i].endTime;
+            req.requirements[i].timeRequired =
+              child.defaultTimeRequirement?.requirements[i].timeRequired || 0;
+          }
+        }
+      }
+    }
+
+    const timeSumValidation = children.map((child) =>
+      child.weeklyTimeRequired.map((req) => sumHours(req.requirements))
+    );
+    const childrenValidated = timeSumValidation.map((weekSum) =>
+      weekSum.filter((sum) => sum > 35)
+    );
+    debugger;
+    if (
+      childrenValidated.filter((childSums) => childSums.length > 0).length === 0
+    ) {
+      await updateChildren(await dbStore.getDbUser(), children);
+      return children;
+    }
+    return [];
   };
 
   return {
