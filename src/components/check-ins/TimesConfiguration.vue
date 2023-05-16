@@ -121,6 +121,8 @@ const dailyMax = 8.5;
 const dailyStartMinimum = new Date();
 dailyStartMinimum.setHours(7);
 dailyStartMinimum.setMinutes(30);
+dailyStartMinimum.setSeconds(0);
+dailyStartMinimum.setMilliseconds(0);
 
 const showError = ref(false);
 const errorMessage = ref("");

@@ -121,7 +121,6 @@ const store = defineStore("children", () => {
     const childrenValidated = timeSumValidation.map((weekSum) =>
       weekSum.filter((sum) => sum > 35)
     );
-    debugger;
     if (
       childrenValidated.filter((childSums) => childSums.length > 0).length === 0
     ) {
