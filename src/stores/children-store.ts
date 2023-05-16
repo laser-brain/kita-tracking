@@ -34,11 +34,11 @@ const store = defineStore("children", () => {
       if (!child.defaultTimeRequirement) {
         child.defaultTimeRequirement = {
           requirements: [
-            { day: "Montag", timeRequired: 0 },
-            { day: "Dienstag", timeRequired: 0 },
-            { day: "Mittwoch", timeRequired: 0 },
-            { day: "Donnerstag", timeRequired: 0 },
-            { day: "Freitag", timeRequired: 0 },
+            { day: "Montag", timeRequired: 0, absent: false },
+            { day: "Dienstag", timeRequired: 0, absent: false },
+            { day: "Mittwoch", timeRequired: 0, absent: false },
+            { day: "Donnerstag", timeRequired: 0, absent: false },
+            { day: "Freitag", timeRequired: 0, absent: false },
           ],
         };
       }
@@ -70,6 +70,7 @@ const store = defineStore("children", () => {
           const req: ITimeRequirement = {
             day: date,
             timeRequired: 0,
+            absent: false,
           };
           if (child.autoApplyDefaultValues && child.defaultTimeRequirement) {
             req.timeRequired =
@@ -103,7 +104,10 @@ const store = defineStore("children", () => {
     for (let child of children) {
       for (let req of child.weeklyTimeRequired) {
         for (let i = 0; i < req.requirements.length; i++) {
-          if (req.requirements[i].timeRequired === 0) {
+          if (
+            !req.requirements[i].absent &&
+            req.requirements[i].timeRequired === 0
+          ) {
             req.requirements[i].startTime =
               child.defaultTimeRequirement?.requirements[i].startTime;
             req.requirements[i].endTime =

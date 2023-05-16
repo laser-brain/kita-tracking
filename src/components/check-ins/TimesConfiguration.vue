@@ -3,35 +3,56 @@
     <h3>Bedarfsmeldung der nächsten vier Wochen</h3>
     <progress-overlay :show="dbLoading" />
     <div class="data">
-      <v-card v-for="(child, ci) in children">
+      <v-card v-for="(child, childIndex) in children">
         <v-card-text v-if="!dbLoading">
           <h2>{{ child.name }}</h2>
           <hr />
           <v-list>
             <v-list-group
-              v-for="(req, index) in itemsComputed(child)"
-              :key="index"
-              :value="index"
+              v-for="(req, itemIndex) in itemsComputed(child)"
+              :key="itemIndex"
+              :value="itemIndex"
             >
               <template #activator="{ props }">
                 <v-list-item
                   v-bind="props"
                   :title="
                     req === child.defaultTimeRequirement
-                      ? `Regelbedarf (${summaryComputed[ci][index]}/35 Std)`
+                      ? `Regelbedarf (${summaryComputed[childIndex][itemIndex]}/35 Std)`
                       : `${dayToString(
                           req.requirements.at(0)?.day
                         )} - ${dayToString(req.requirements.at(-1)?.day)} (${
-                          summaryComputed[ci][index]
+                          summaryComputed[childIndex][itemIndex]
                         }/35 Std)`
                   "
                 />
               </template>
               <div class="time-requirements">
-                <div v-for="date in req.requirements">
-                  <label>{{
-                    `${dayToString(date.day, true)} (${date.timeRequired} Std)`
-                  }}</label>
+                <div v-for="(date, dateIndex) in req.requirements">
+                  <div class="flex row">
+                    <label>{{
+                      `${dayToString(date.day, true)} (${
+                        date.timeRequired
+                      } Std)`
+                    }}</label>
+                    <div class="flex row">
+                      <label
+                        :for="`absence_${childIndex}_${itemIndex}_${dateIndex}`"
+                        >Abwesend</label
+                      >
+                      <v-switch
+                        :id="`absence_${childIndex}_${itemIndex}_${dateIndex}`"
+                        v-if="itemIndex > 0"
+                        v-model="date.absent"
+                        :color="date.absent ? 'red' : 'gray'"
+                        hide-details
+                        inset
+                        @change="
+                          () => toggleAbsence(childIndex, itemIndex, dateIndex)
+                        "
+                      />
+                    </div>
+                  </div>
                   <div class="inputs">
                     <v-text-field
                       type="time"
@@ -66,6 +87,7 @@
         </v-card-text>
         <v-card-actions class="col" v-if="!dbLoading">
           <v-switch
+            class="stretch"
             label="Wochenbedarf ausblenden"
             v-model="hideWeeklyRequirements"
             :color="hideWeeklyRequirements ? 'teal-darken-4' : 'gray'"
@@ -242,6 +264,22 @@ const toggleWeeklyDisplay = () => {
   localStorage.setItem(configId, hideWeeklyRequirements.value.toString());
 };
 
+const toggleAbsence = (
+  childIndex: number,
+  itemIndex: number,
+  dateIndex: number
+) => {
+  const dayRequirement =
+    children.value[childIndex].weeklyTimeRequired[itemIndex - 1].requirements[
+      dateIndex
+    ];
+  if (dayRequirement.absent) {
+    dayRequirement.startTime = undefined;
+    dayRequirement.endTime = undefined;
+    dayRequirement.timeRequired = 0;
+  }
+};
+
 const save = async () => {
   dbLoading.value = true;
   showError.value = false;
@@ -314,6 +352,15 @@ hr {
 
 .v-switch {
   display: flex;
-  width: 100%;
+  &.stretch {
+    width: 100%;
+  }
+}
+
+.flex {
+  align-items: center;
+  label {
+    margin-right: 8px;
+  }
 }
 </style>

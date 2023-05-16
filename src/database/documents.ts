@@ -42,4 +42,5 @@ export interface ITimeRequirement {
   startTime?: string;
   endTime?: string;
   timeRequired: number;
+  absent: boolean;
 }
