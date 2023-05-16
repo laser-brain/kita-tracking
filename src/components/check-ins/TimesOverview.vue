@@ -9,7 +9,6 @@
 </template>
 <script setup lang="ts">
 import useChildren from "@/stores/children-store";
-import router from "@/plugins/router";
 import { IChild, ITimeRequirement } from "@/database/documents";
 import { onMounted, ref, Ref } from "vue";
 import { BarChart } from "vue-chart-3";
@@ -48,39 +47,8 @@ const barChartOptions: ChartOptions = {
   responsive: true,
 };
 
-function getRandomInt(min: number, max: number) {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-const scrambleDataForDemoMode = () => {
-  const demoMode = router.currentRoute.value.query["randomize"];
-  if (demoMode !== undefined) {
-    for (let child of children.value) {
-      for (let i = 0; i < child.weeklyTimeRequired.length; i++) {
-        for (
-          let j = 0;
-          j < child.weeklyTimeRequired[i].requirements.length;
-          j++
-        ) {
-          const startHour = getRandomInt(7, 9);
-          const endHour = getRandomInt(12, 16);
-          child.weeklyTimeRequired[i].requirements[j] = {
-            day: child.weeklyTimeRequired[i].requirements[j].day,
-            timeRequired: endHour - startHour,
-            startTime: `0${startHour}:${startHour === 7 ? "3" : "0"}0`,
-            endTime: `${endHour}:00`,
-          };
-        }
-      }
-    }
-  }
-};
-
 onMounted(async () => {
   children.value = await store.loadChildren();
-  scrambleDataForDemoMode();
   const requirementDays = children.value.flatMap((child) => {
     return child.weeklyTimeRequired.flatMap((week) =>
       week.requirements.map((req) => (req.day as Date).valueOf())

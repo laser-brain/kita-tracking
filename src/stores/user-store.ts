@@ -32,7 +32,7 @@ const store = defineStore("users", () => {
   const isParent = ref(localUser.isParent);
   const username = ref(localUser.username || "");
 
-  const logIn = async (loginName: string, password: string) => {
+  const logIn = async (loginName: string, password: string): Promise<void> => {
     const result = await checkPassword(
       await dbStore.getDbUser(),
       loginName,
@@ -61,6 +61,7 @@ const store = defineStore("users", () => {
   const navigateStartPage = (forcePasswordReset: boolean = false) => {
     if (forcePasswordReset) {
       router.push("/set-password");
+      return;
     } else if (isEducator.value) {
       router.push("/tracking");
     } else if (isAdmin.value) {
@@ -69,7 +70,7 @@ const store = defineStore("users", () => {
       router.push("/check-ins");
     } else {
       alert(
-        "Nutzer ist falsch konfiguiert. Bitte melden Sie sich bei einem Administrator (admin@kita-matschzwerge.de)"
+        "Nutzer ist falsch konfiguiert. Bitte melden Sie sich bei einem Administrator (kita-portal@freunde-der-bochumer-natur.de)"
       );
     }
   };
