@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h1>Bedarfsmeldung der nächsten vier Wochen</h1>
+    <h3>Bedarfsmeldung der nächsten vier Wochen</h3>
     <div class="scroll overflow">
       <div v-for="(item, index) in overviewData" :key="index">
         <h2 v-if="index % 5 === 0">KW {{ getWeek(item.referenceDate) }}</h2>
@@ -147,19 +147,22 @@ const filterConfig = (
 };
 </script>
 <style scoped lang="scss">
-h1 {
+h3 {
   width: 100%;
   text-align: center;
 }
 
-h2,
-h3,
-hr {
-  margin-top: 2em;
-}
+.scroll {
+  margin-top: 0;
 
-hr {
-  background-color: black;
-  height: 0.5em;
+  h2,
+  h3,
+  hr {
+    margin-top: 2em;
+  }
+  hr {
+    background-color: black;
+    height: 0.5em;
+  }
 }
 </style>
