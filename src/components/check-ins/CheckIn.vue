@@ -22,7 +22,7 @@
         </thead>
         <tbody>
           <tr v-if="enableAllChildren">
-            <td colspan="3" class="query-row">
+            <td colspan="4" class="query-row">
               <v-text-field
                 id="query"
                 v-model="query"
