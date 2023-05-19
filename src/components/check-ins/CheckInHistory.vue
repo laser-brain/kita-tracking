@@ -2,9 +2,9 @@
   <div class="container">
     <h3>Historische Daten</h3>
     <div class="flex row date-selection">
-      <v-text-field type="date" label="von" v-model="dateFrom" />
+      <v-text-field type="date" label="von" v-model="dateFrom" hide-details />
       &nbsp;-&nbsp;
-      <v-text-field type="date" label="bis" v-model="dateTo" />
+      <v-text-field type="date" label="bis" v-model="dateTo" hide-details />
     </div>
     <div class="scroll">
       <v-list>
@@ -104,6 +104,9 @@ onMounted(async () => {
   justify-content: space-between;
 }
 
+.scroll {
+  margin-top: 0;
+}
 .date-selection {
   @media screen and (orientation: landscape) {
     max-width: 50vw;
