@@ -39,7 +39,7 @@ import useChildren from "@/stores/children-store";
 import { Ref, onMounted, ref, computed } from "vue";
 import { getDayOfWeek, getMonday } from "@/business/utility";
 import { format } from "date-fns";
-import { PieChart, BarChart } from "vue-chart-3";
+import { PieChart } from "vue-chart-3";
 
 import {
   Chart,
