@@ -13,7 +13,8 @@
     </div>
     <v-main>
       <router-view></router-view>
-      <div class="nav" v-if="store.loggedIn">
+      <nav-menu v-if="store.loggedIn && store.isAdmin" />
+      <div class="nav" v-else v-if="store.loggedIn">
         <router-link v-if="store.isEducator" to="/tracking"
           >Zeiterfassung</router-link
         >
@@ -41,6 +42,7 @@
   </v-app>
 </template>
 <script setup lang="ts">
+import NavMenu from "@/components/NavMenu.vue";
 import useUsers from "@/stores/user-store";
 import router from "@/plugins/router";
 
