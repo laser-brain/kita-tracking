@@ -104,11 +104,6 @@ const currentWeekData = computed(() => {
             label: "Reststunden",
             backgroundColor: data.map(mapColor),
           },
-          {
-            data: data.map(() => 35),
-            label: "Gesamt verfügbar",
-            backgroundColor: "black",
-          },
         ],
       };
     },
