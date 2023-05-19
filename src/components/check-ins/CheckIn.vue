@@ -259,53 +259,6 @@ const checkinClass = (child: IChildCheckinData) => {
   white-space: pre;
 }
 
-.scroll {
-  margin-top: 32px;
-  overflow: auto;
-  position: relative;
-  width: 96%;
-  &.overflow {
-    .screened {
-      position: sticky;
-      bottom: 0;
-      opacity: 0.5;
-      background-color: black;
-      height: 54px;
-    }
-
-    .chevron-down {
-      box-sizing: border-box;
-      position: sticky;
-      bottom: 8px;
-      left: calc(50% - 32px);
-      display: block;
-      width: 32px;
-      height: 32px;
-      border: 2px solid;
-      border-radius: 100px;
-      animation-name: twitch;
-      animation-duration: 8s;
-      animation-iteration-count: infinite;
-      animation-delay: 2s;
-      background-color: white;
-
-      &::after {
-        content: "";
-        display: block;
-        box-sizing: border-box;
-        position: absolute;
-        width: 12px;
-        height: 12px;
-        border-bottom: 2px solid;
-        border-right: 2px solid;
-        transform: rotate(45deg);
-        left: 8px;
-        top: 5px;
-      }
-    }
-  }
-}
-
 $borderWidth: 1px;
 $borderInner: $borderWidth solid black;
 $borderOuter: 2 * $borderWidth solid black;

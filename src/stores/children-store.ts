@@ -1,4 +1,4 @@
-import { getMidnight, sumHours } from "@/business/utility";
+import { getFriday, getMidnight, sumHours } from "@/business/utility";
 import {
   IChild,
   IChildCheckinData,
@@ -11,15 +11,6 @@ import {
 } from "@/database/mongodb.connect";
 import useDatabase from "@/stores/database-store";
 import { defineStore } from "pinia";
-
-const getFriday = (date: Date) => {
-  const result = getMidnight(date);
-  while (result.getDay() !== 5) {
-    result.setDate(result.getDate() + 1);
-  }
-
-  return result;
-};
 
 const store = defineStore("children", () => {
   const dbStore = useDatabase();

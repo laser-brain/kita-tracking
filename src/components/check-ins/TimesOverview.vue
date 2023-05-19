@@ -1,10 +1,14 @@
 <template>
-  <h1>Bedarfsmeldung der nächsten vier Wochen</h1>
-  <div v-for="(item, index) in overviewData" :key="index">
-    <h2 v-if="index % 5 === 0">KW {{ getWeek(item.referenceDate) }}</h2>
-    <h3>{{ item.referenceDate.toLocaleDateString() }}</h3>
-    <bar-chart :chartData="item.barChartData" :options="barChartOptions" />
-    <hr v-if="(index + 1) % 5 === 0 && index !== overviewData.length - 1" />
+  <div class="container">
+    <h1>Bedarfsmeldung der nächsten vier Wochen</h1>
+    <div class="scroll overflow">
+      <div v-for="(item, index) in overviewData" :key="index">
+        <h2 v-if="index % 5 === 0">KW {{ getWeek(item.referenceDate) }}</h2>
+        <h3>{{ item.referenceDate.toLocaleDateString() }}</h3>
+        <bar-chart :chartData="item.barChartData" :options="barChartOptions" />
+        <hr v-if="(index + 1) % 5 === 0 && index !== overviewData.length - 1" />
+      </div>
+    </div>
   </div>
 </template>
 <script setup lang="ts">

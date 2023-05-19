@@ -7,6 +7,8 @@ import TrackerOverview from "@/components/time-tracking/TrackerOverview.vue";
 import TimesConfiguration from "@/components/check-ins/TimesConfiguration.vue";
 import UpdatePassword from "@/components/UpdatePassword.vue";
 import Overvue from "@/components/check-ins/TimesOverview.vue";
+import CheckInHistory from "@/components/check-ins/CheckInHistory.vue";
+import CheckInWeekOverview from "@/components/check-ins/CheckInWeekOverview.vue";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -43,6 +45,22 @@ const routes: RouteRecordRaw[] = [
     component: Overvue,
     meta: {
       requiresAuth: true,
+    },
+  },
+  {
+    path: "/check-ins/history",
+    component: CheckInHistory,
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+    },
+  },
+  {
+    path: "/check-ins/burn-down",
+    component: CheckInWeekOverview,
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
     },
   },
   {

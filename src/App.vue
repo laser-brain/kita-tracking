@@ -17,14 +17,20 @@
         <router-link v-if="store.isEducator" to="/tracking"
           >Zeiterfassung</router-link
         >
-        <router-link
-          v-if="store.isAdmin && (store.isParent || store.isEducator)"
-          to="/tracking/overview"
+        <router-link v-if="store.isAdmin" to="/tracking/overview"
           >Alle Daten</router-link
         >
         <router-link to="/check-ins">Bringen / Abholen</router-link>
         <router-link v-if="store.isParent" to="/check-ins/configuration"
           >Bedarf</router-link
+        ><router-link
+          v-if="store.isEducator && store.isAdmin"
+          to="/check-ins/history"
+          >Wochenübersichten</router-link
+        ><router-link
+          v-if="store.isEducator && store.isAdmin"
+          to="/check-ins/burn-down"
+          >Aktuelle Woche</router-link
         ><router-link
           v-if="store.isEducator && store.isAdmin"
           to="/check-ins/overview"
@@ -120,6 +126,53 @@ $greeting-dist-top: 16vh;
   }
   margin: 4vh 2vw;
   text-align: center;
+}
+
+.scroll {
+  margin-top: 32px;
+  overflow: auto;
+  position: relative;
+  width: 96%;
+  &.overflow {
+    .screened {
+      position: sticky;
+      bottom: 0;
+      opacity: 0.5;
+      background-color: black;
+      height: 54px;
+    }
+
+    .chevron-down {
+      box-sizing: border-box;
+      position: sticky;
+      bottom: 8px;
+      left: calc(50% - 32px);
+      display: block;
+      width: 32px;
+      height: 32px;
+      border: 2px solid;
+      border-radius: 100px;
+      animation-name: twitch;
+      animation-duration: 8s;
+      animation-iteration-count: infinite;
+      animation-delay: 2s;
+      background-color: white;
+
+      &::after {
+        content: "";
+        display: block;
+        box-sizing: border-box;
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border-bottom: 2px solid;
+        border-right: 2px solid;
+        transform: rotate(45deg);
+        left: 8px;
+        top: 5px;
+      }
+    }
+  }
 }
 
 #app {

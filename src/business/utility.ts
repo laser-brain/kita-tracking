@@ -62,3 +62,24 @@ export const sumHours = (requirements: ITimeRequirement[]) => {
     .map((date) => date.timeRequired)
     .reduce((prev, current) => prev + current, 0);
 };
+
+export const getFriday = (date: Date) => {
+  const result = getMidnight(date);
+  while (result.getDay() !== 5) {
+    result.setDate(result.getDate() + 1);
+  }
+
+  return result;
+};
+
+export const getMonday = (date: Date) => getDayOfWeek(date, 1);
+
+export const getDayOfWeek = (date: Date, dayIndex: number) => {
+  const result = getMidnight(date);
+  const direction = date.getDay() < dayIndex ? 1 : -1;
+  while (result.getDay() !== dayIndex) {
+    result.setDate(result.getDate() + direction);
+  }
+
+  return result;
+};

@@ -42,7 +42,6 @@
                       >
                       <v-switch
                         :id="`absence_${childIndex}_${itemIndex}_${dateIndex}`"
-                        v-if="itemIndex > 0"
                         v-model="date.absent"
                         :color="date.absent ? 'red' : 'gray'"
                         hide-details

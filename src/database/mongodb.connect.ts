@@ -79,6 +79,7 @@ export const getChildren = async (
   if (username) {
     filter.parent = username;
   }
+  //filter.name = "Linus Zink";
   const sort = { lastName: 1 };
   return read<IChild[]>(user, "children", filter, sort);
 };
