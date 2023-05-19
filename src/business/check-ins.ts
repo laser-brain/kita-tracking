@@ -2,7 +2,15 @@ import { addDays } from "date-fns";
 import { getDayOfWeek } from "./utility";
 import { IChild, IChildCheckinData } from "@/database/documents";
 import { ChartData } from "chart.js";
-const labels = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag"];
+
+export const daysOfWeek = [
+  "Montag",
+  "Dienstag",
+  "Mittwoch",
+  "Donnerstag",
+  "Freitag",
+];
+
 const colors = ["violet", "indigo", "blue", "green", "yellow", "orange", "red"];
 
 export interface IChildWithWeeklyData {
@@ -26,7 +34,7 @@ export const getChartData = (
     from: weekStart,
     to: getDayOfWeek(dataItem.pickupTime as Date, 5),
     chartData: {
-      labels: labels.map((day, index) => {
+      labels: daysOfWeek.map((day, index) => {
         return `${day}, ${addDays(weekStart, index).toLocaleDateString()}`;
       }),
       datasets: [

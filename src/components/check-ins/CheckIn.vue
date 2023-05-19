@@ -15,6 +15,7 @@
         <thead>
           <tr>
             <td></td>
+            <td></td>
             <td>Bedarfszeit</td>
             <td>Anwesenheit</td>
           </tr>
@@ -30,7 +31,13 @@
               />
             </td>
           </tr>
-          <tr v-for="child in filter" :class="`child ${checkinClass(child)}`">
+          <tr
+            v-for="(child, index) in filter"
+            :class="`child ${checkinClass(child)}`"
+          >
+            <td>
+              <span>{{ index + 1 }}</span>
+            </td>
             <td style="max-width: 64px" :title="child.name">
               <span>
                 {{ child.name }}
@@ -79,6 +86,7 @@ import {
   IChildCheckinData,
   ITimeRequirement,
 } from "@/database/documents";
+import { daysOfWeek } from "@/business/check-ins";
 
 interface ICheckinProps {
   children: IChildCheckinData[];
@@ -90,7 +98,6 @@ const user = useUsers();
 
 const enableAllChildren = user.isAdmin || user.isEducator;
 
-const daysOfWeek = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag"];
 const parseChildren = (children: IChild[]): IChildCheckinData[] => {
   const midnight = getMidnight();
   return children.map((child) => {
@@ -180,8 +187,31 @@ const filter = computed(() => {
     });
   }
 
-  return childrenFiltered.value;
+  const arrivedChildren = childrenFiltered.value.filter(
+    (child) => child.arrivalTime && !child.pickupTime
+  );
+  const pickedUpChildren = childrenFiltered.value.filter(
+    (child) => child.arrivalTime && child.pickupTime
+  );
+  const notArrivedYetChildren = childrenFiltered.value.filter(
+    (child) => !child.arrivalTime
+  );
+  return arrivedChildren.concat(notArrivedYetChildren).concat(pickedUpChildren);
 });
+
+const sortByTruthy = (a: any, b: any, mod?: number) => {
+  if (a && b) {
+    return 0;
+  } else if (a && !b) {
+    return 1;
+  }
+
+  return -1;
+};
+
+const sortAlphabetical = (a: string, b: string) => {
+  return a > b ? 1 : -1;
+};
 
 const toggleCheckin = async (child: IChildCheckinData) => {
   if (child.checkedIn) {
