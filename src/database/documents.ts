@@ -44,3 +44,11 @@ export interface ITimeRequirement {
   timeRequired: number;
   absent: boolean;
 }
+
+export interface ISubscription {
+  _id?: ObjectId;
+  username: string;
+  endpoint: string;
+  auth: string;
+  p256dh: string;
+}

@@ -5,9 +5,14 @@ import {
   IChildCheckinData,
   ITrackingDataDocument,
   ObjectId,
+  ISubscription,
 } from "@/database/documents";
 
-type collection = "time-tracking" | "people" | "children";
+type collection =
+  | "time-tracking"
+  | "people"
+  | "children"
+  | "push-subscriptions";
 
 interface DBResult<T> {
   result: T;
@@ -138,6 +143,24 @@ export const removeTrackingData = async (
     return;
   }
   del(user, "time-tracking", id);
+};
+
+export const loadSubscription = async (
+  user: any,
+  username: string
+): Promise<ISubscription | null> => {
+  const data = await read<ISubscription[]>(user, "push-subscriptions", {
+    username: username,
+  });
+
+  return data.length === 1 ? data[0] : null;
+};
+
+export const subscribeToPush = (user: any, data: ISubscription) =>
+  write(user, "push-subscriptions", data);
+
+export const unsubscribeFromPush = (user: any, id: ObjectId) => {
+  del(user, "push-subscriptions", id);
 };
 
 export const checkPassword = async (

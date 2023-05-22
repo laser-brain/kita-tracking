@@ -5,48 +5,31 @@
         {{ store.loggedIn ? `Hallo ${store.username}` : "Login" }}
       </h2>
       <div class="flex">
-        <v-btn v-if="store.loggedIn" @click="store.logOut">Abmelden</v-btn>
-        <v-btn v-if="store.loggedIn" @click="router.push('/set-password')"
-          >Passwort ändern</v-btn
+        <v-btn
+          v-if="store.loggedIn"
+          @click="store.logOut"
+          append-icon="mdi-logout"
+          >Abmelden</v-btn
         >
       </div>
     </div>
     <v-main>
       <router-view></router-view>
-      <nav-menu v-if="store.loggedIn && store.isAdmin" />
-      <div class="nav" v-else v-if="store.loggedIn">
-        <router-link v-if="store.isEducator" to="/tracking"
-          >Zeiterfassung</router-link
-        >
-        <router-link v-if="store.isAdmin" to="/tracking/overview"
-          >Alle Daten</router-link
-        >
-        <router-link to="/check-ins">Bringen / Abholen</router-link>
-        <router-link v-if="store.isParent" to="/check-ins/configuration"
-          >Bedarf</router-link
-        ><router-link
-          v-if="store.isEducator && store.isAdmin"
-          to="/check-ins/history"
-          >Wochenübersichten</router-link
-        ><router-link
-          v-if="store.isEducator && store.isAdmin"
-          to="/check-ins/burn-down"
-          >Aktuelle Woche</router-link
-        ><router-link
-          v-if="store.isEducator && store.isAdmin"
-          to="/check-ins/overview"
-          >Bedarf</router-link
-        >
-      </div>
+      <nav-menu v-if="store.loggedIn" />
     </v-main>
   </v-app>
 </template>
 <script setup lang="ts">
 import NavMenu from "@/components/NavMenu.vue";
 import useUsers from "@/stores/user-store";
-import router from "@/plugins/router";
 
 const store = useUsers();
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/sw.ts", {
+    scope: "/",
+  });
+}
 </script>
 <style lang="scss">
 * {

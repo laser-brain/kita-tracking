@@ -9,6 +9,7 @@ import UpdatePassword from "@/components/UpdatePassword.vue";
 import Overvue from "@/components/check-ins/TimesOverview.vue";
 import CheckInHistory from "@/components/check-ins/CheckInHistory.vue";
 import CheckInWeekOverview from "@/components/check-ins/CheckInWeekOverview.vue";
+import Settings from "@/components/Settings.vue";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -74,6 +75,13 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/set-password",
     component: UpdatePassword,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: "/settings",
+    component: Settings,
     meta: {
       requiresAuth: true,
     },

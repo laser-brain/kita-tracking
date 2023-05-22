@@ -68,7 +68,8 @@ const updatePassword = async () => {
 }
 
 .v-card {
-  width: 100vw;
+  width: calc(100% - 4em);
+  margin: 1em 4em;
 }
 
 h2 {

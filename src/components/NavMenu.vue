@@ -48,6 +48,9 @@
         @click.native="closeDialog"
         >Bedarf</router-link
       >
+      <router-link to="/settings" @click.native="closeDialog">
+        <v-icon icon="mdi-cog" /> Einstellungen
+      </router-link>
     </div>
   </v-dialog>
 </template>
@@ -84,8 +87,10 @@ const closeDialog = () => {
   a {
     border-radius: 8px;
     font-size: 1em;
+    line-height: 1em;
     background-color: black;
     text-align: center;
+    vertical-align: middle;
     color: white;
     padding: 1em 2em;
     margin: 1em;
@@ -95,6 +100,10 @@ const closeDialog = () => {
     &:hover {
       background-color: white;
       color: black;
+    }
+
+    .v-icon {
+      margin-bottom: 4px;
     }
   }
 }
