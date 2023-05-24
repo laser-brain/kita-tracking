@@ -72,7 +72,7 @@ const checkStatus = (userSubscription: ISubscription | null) => {
 
   .v-card {
     margin: 1em 2em;
-    width: 512px;
+    width: min(512px, 100vw);
   }
 
   .v-btn.settings {

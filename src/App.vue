@@ -2,12 +2,12 @@
   <v-app>
     <div class="flex row greeting">
       <h2 class="">
-        {{ store.loggedIn ? `Hallo ${store.username}` : "Login" }}
+        {{ user.loggedIn ? `Hallo ${user.username}` : "Login" }}
       </h2>
       <div class="flex">
         <v-btn
-          v-if="store.loggedIn"
-          @click="store.logOut"
+          v-if="user.loggedIn"
+          @click="user.logOut"
           append-icon="mdi-logout"
           >Abmelden</v-btn
         >
@@ -15,7 +15,7 @@
     </div>
     <v-main>
       <router-view></router-view>
-      <nav-menu v-if="store.loggedIn" />
+      <nav-menu v-if="user.loggedIn" />
     </v-main>
   </v-app>
 </template>
@@ -23,10 +23,10 @@
 import NavMenu from "@/components/NavMenu.vue";
 import useUsers from "@/stores/user-store";
 
-const store = useUsers();
+const user = useUsers();
 
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/sw.ts", {
+  navigator.serviceWorker.register("/sw.js", {
     scope: "/",
   });
 }
