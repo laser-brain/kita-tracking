@@ -70,7 +70,7 @@
                 prepend-icon="mdi-reload"
                 >Reset</v-btn
               >
-              <div v-else v-if="new Date().getHours() < 22" class="flex">
+              <div v-else v-if="new Date().getHours() < 10" class="flex">
                 <v-btn
                   @click="() => reset(child, false)"
                   :disabled="resetPickupDisabled(child)"
