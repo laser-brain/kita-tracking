@@ -14,9 +14,9 @@
       <table>
         <thead>
           <tr>
+            <td v-if="!user.isParent"></td>
             <td></td>
-            <td></td>
-            <td>Bedarfszeit</td>
+            <td v-if="!user.isParent">Bedarfszeit</td>
             <td>Anwesenheit</td>
           </tr>
         </thead>
@@ -35,7 +35,7 @@
             v-for="(child, index) in filter"
             :class="`child ${checkinClass(child)}`"
           >
-            <td>
+            <td v-if="!user.isParent">
               <span>{{ index + 1 }}</span>
             </td>
             <td style="max-width: 64px" :title="child.name">
@@ -43,7 +43,7 @@
                 {{ child.name }}
               </span>
             </td>
-            <td>
+            <td v-if="!user.isParent">
               {{ child.regularTime }}
               <hr />
               <span v-if="!child.pickupTime">Ankunft</span>
@@ -56,17 +56,31 @@
             <td>
               <v-btn
                 v-if="!child.pickupTime"
+                :disabled="checkinButtonDisabled"
                 @click="() => toggleCheckin(child)"
-                ><v-icon v-if="child.checkedIn" icon="mdi-logout"></v-icon>
+                ><progress-overlay :show="checkinButtonDisabled" />
+                <v-icon v-if="child.checkedIn" icon="mdi-logout"></v-icon>
                 <v-icon v-else icon="mdi-login"></v-icon>
                 {{ child.checkedIn ? "Geht" : "Kommt" }}</v-btn
               >
               <v-btn
                 @click="() => reset(child)"
                 v-else
+                v-if="!user.isParent"
                 prepend-icon="mdi-reload"
                 >Reset</v-btn
               >
+              <div v-else v-if="new Date().getHours() < 22" class="flex">
+                <v-btn
+                  @click="() => reset(child, false)"
+                  :disabled="resetPickupDisabled(child)"
+                  prepend-icon="mdi-reload"
+                  >Abholzeit zurücksetzen</v-btn
+                >
+                <span v-if="resetPickupDisabled(child)"
+                  >Zurücksetzen ist nur innerhalb von 15 Minuten möglich</span
+                >
+              </div>
             </td>
           </tr>
         </tbody>
@@ -77,10 +91,12 @@
   </div>
 </template>
 <script setup lang="ts">
+import ProgressOverlay from "@/components/ProgressOverlay.vue";
 import { getMidnight } from "@/business/utility";
 import { computed, onBeforeUnmount, onMounted, Ref, ref } from "vue";
 import useChildren from "@/stores/children-store";
 import useUsers from "@/stores/user-store";
+import { addMinutes } from "date-fns";
 import {
   IChild,
   IChildCheckinData,
@@ -165,7 +181,8 @@ onMounted(async () => {
 });
 
 const query: Ref<string> = ref("");
-const showPickedUpChildren = ref(false);
+const showPickedUpChildren = ref(user.isParent);
+const checkinButtonDisabled = ref(false);
 const childrenFiltered: Ref<IChildCheckinData[]> = ref([]);
 const checkIns: Ref<ICheckinProps> = ref({ date: new Date(), children: [] });
 const filter = computed(() => {
@@ -199,6 +216,10 @@ const filter = computed(() => {
   return arrivedChildren.concat(notArrivedYetChildren).concat(pickedUpChildren);
 });
 
+const resetPickupDisabled = (child: IChildCheckinData) => {
+  return child.pickupTime && child.arrivalTime && child.pickupTime > addMinutes(child.arrivalTime, 15)
+}
+
 const sortByTruthy = (a: any, b: any, mod?: number) => {
   if (a && b) {
     return 0;
@@ -214,6 +235,7 @@ const sortAlphabetical = (a: string, b: string) => {
 };
 
 const toggleCheckin = async (child: IChildCheckinData) => {
+  checkinButtonDisabled.value = true;
   if (child.checkedIn) {
     child.checkedIn = false;
     child.pickupTime = new Date();
@@ -222,8 +244,12 @@ const toggleCheckin = async (child: IChildCheckinData) => {
     child.arrivalTime = new Date();
     child.pickupTime = undefined;
   }
-
-  await store.updateCheckin(child);
+  try {
+    await store.updateCheckin(child);
+  }
+  finally {
+    checkinButtonDisabled.value = true;
+  }
 };
 
 const lastChildIsVisible = ref(false);
@@ -270,11 +296,13 @@ const checkLastChildVisibility = () => {
     child.scrollHeight * childrenFiltered.value.length - container.offsetHeight;
 };
 
-const reset = async (child: IChildCheckinData) => {
-  child.arrivalTime = undefined;
+const reset = async (child: IChildCheckinData, fullReset: boolean = true) => {
   child.pickupTime = undefined;
-  child.checkedIn = false;
 
+  if(fullReset) {
+    child.arrivalTime = undefined;
+    child.checkedIn = false;
+  }
   await store.updateCheckin(child, true);
 };
 
@@ -287,6 +315,18 @@ const checkinClass = (child: IChildCheckinData) => {
   overflow-y: hidden;
   text-overflow: ellipsis;
   white-space: pre;
+}
+
+.v-btn  {
+max-width: 256px;
+}
+span {
+max-width: 256px;
+}
+
+.flex {
+  justify-content: center;
+  align-items: center;
 }
 
 $borderWidth: 1px;
