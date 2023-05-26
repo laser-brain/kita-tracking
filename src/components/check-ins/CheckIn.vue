@@ -54,24 +54,25 @@
               {{ child.pickupTime?.toLocaleTimeString() }}
             </td>
             <td>
-              <v-btn
-                v-if="!child.pickupTime"
-                :disabled="checkinButtonDisabled"
-                @click="() => toggleCheckin(child)"
-                ><progress-overlay :show="checkinButtonDisabled" />
-                <v-icon v-if="child.checkedIn" icon="mdi-logout"></v-icon>
-                <v-icon v-else icon="mdi-login"></v-icon>
-                {{ child.checkedIn ? "Geht" : "Kommt" }}</v-btn
-              >
-              <v-btn
-                @click="() => reset(child)"
-                v-else
-                v-if="!user.isParent"
-                prepend-icon="mdi-reload"
-                >Reset</v-btn
-              >
-              <div v-else v-if="new Date().getHours() < 10" class="flex">
+              <div v-if="new Date().getHours() < 10" class="flex">
                 <v-btn
+                  v-if="!child.pickupTime"
+                  :disabled="checkinButtonDisabled"
+                  @click="() => toggleCheckin(child)"
+                  ><progress-overlay :show="checkinButtonDisabled" />
+                  <v-icon v-if="child.checkedIn" icon="mdi-logout"></v-icon>
+                  <v-icon v-else icon="mdi-login"></v-icon>
+                  {{ child.checkedIn ? "Abgeholt" : "Gebracht" }}</v-btn
+                >
+                <v-btn
+                  @click="() => reset(child)"
+                  v-else
+                  v-if="!user.isParent"
+                  prepend-icon="mdi-reload"
+                  >Reset</v-btn
+                >
+                <v-btn
+                  v-if="child.pickupTime"
                   @click="() => reset(child, false)"
                   :disabled="resetPickupDisabled(child)"
                   prepend-icon="mdi-reload"
