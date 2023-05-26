@@ -54,7 +54,10 @@
               {{ child.pickupTime?.toLocaleTimeString() }}
             </td>
             <td>
-              <div v-if="new Date().getHours() < 10" class="flex">
+              <div
+                v-if="new Date().getHours() < 10 || !user.isParent"
+                class="flex"
+              >
                 <v-btn
                   v-if="!child.pickupTime"
                   :disabled="checkinButtonDisabled"
@@ -72,13 +75,13 @@
                   >Reset</v-btn
                 >
                 <v-btn
-                  v-if="child.pickupTime"
+                  v-if="child.pickupTime && user.isParent"
                   @click="() => reset(child, false)"
                   :disabled="resetPickupDisabled(child)"
                   prepend-icon="mdi-reload"
                   >Abholzeit zurücksetzen</v-btn
                 >
-                <span v-if="resetPickupDisabled(child)"
+                <span v-if="resetPickupDisabled(child) && user.isParent"
                   >Zurücksetzen ist nur innerhalb von 15 Minuten möglich</span
                 >
               </div>
