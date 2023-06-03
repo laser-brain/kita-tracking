@@ -103,7 +103,8 @@ export const updateChildren = async (
 export const addCheckinData = async (
   user: any,
   data: IChildCheckinData,
-  reset: boolean = false
+  reset: boolean = false,
+  remove: boolean = false
 ) => {
   const child = (
     (await read(user, "children", { name: data.name })) as IChild[]
@@ -114,9 +115,9 @@ export const addCheckinData = async (
   } else if (!child.checkinHistory) {
     child.checkinHistory = [];
   }
-  if (reset) {
+  if (remove) {
     child.checkinHistory.pop();
-  } else if (data.pickupTime) {
+  } else if (data.pickupTime || reset) {
     const previousDataset = child.checkinHistory.at(-1);
     if (previousDataset) {
       previousDataset.pickupTime = data.pickupTime;

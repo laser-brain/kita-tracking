@@ -86,9 +86,15 @@ const store = defineStore("children", () => {
 
   const updateCheckin = async (
     checkinData: IChildCheckinData,
-    reset: boolean = false
+    reset: boolean = false,
+    remove: boolean = false
   ) => {
-    return addCheckinData(await dbStore.getDbUser(), checkinData, reset);
+    return addCheckinData(
+      await dbStore.getDbUser(),
+      checkinData,
+      reset,
+      remove
+    );
   };
 
   const save = async (children: IChild[]): Promise<IChild[]> => {

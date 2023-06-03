@@ -16,7 +16,7 @@
           <tr>
             <td v-if="!user.isParent"></td>
             <td></td>
-            <td v-if="!user.isParent">Bedarfszeit</td>
+            <td>Bedarfszeit</td>
             <td>Anwesenheit</td>
           </tr>
         </thead>
@@ -43,7 +43,7 @@
                 {{ child.name }}
               </span>
             </td>
-            <td v-if="!user.isParent">
+            <td>
               {{ child.regularTime }}
               <hr />
               <span v-if="!child.pickupTime">Ankunft</span>
@@ -54,14 +54,11 @@
               {{ child.pickupTime?.toLocaleTimeString() }}
             </td>
             <td>
-              <div
-                v-if="new Date().getHours() < 10 || !user.isParent"
-                class="flex"
-              >
+              <div class="flex">
                 <v-btn
                   v-if="!child.pickupTime"
                   :disabled="checkinButtonDisabled"
-                  @click="() => toggleCheckin(child)"
+                  @click="() => toggleCheckin(child, index)"
                   ><progress-overlay :show="checkinButtonDisabled" />
                   <v-icon v-if="child.checkedIn" icon="mdi-logout"></v-icon>
                   <v-icon v-else icon="mdi-login"></v-icon>
@@ -77,13 +74,17 @@
                 <v-btn
                   v-if="child.pickupTime && user.isParent"
                   @click="() => reset(child, false)"
-                  :disabled="resetPickupDisabled(child)"
+                  :disabled="resetEnabledTimespans[index] === '00:00'"
                   prepend-icon="mdi-reload"
-                  >Abholzeit zurücksetzen</v-btn
+                  >Zurücksetzen</v-btn
                 >
-                <span v-if="resetPickupDisabled(child) && user.isParent"
-                  >Zurücksetzen ist nur innerhalb von 15 Minuten möglich</span
+                <span
+                  v-if="child.pickupTime && resetEnabledTimespans[index] === '00:00' && user.isParent"
+                  >Zurücksetzen ist nur innerhalb von 2 Minuten möglich</span
                 >
+                <span v-else v-if="child.pickupTime && user.isParent">
+                  Noch {{resetEnabledTimespans[index]}} lang möglich
+                </span>
               </div>
             </td>
           </tr>
@@ -118,12 +119,31 @@ const user = useUsers();
 
 const enableAllChildren = user.isAdmin || user.isEducator;
 
+const setupTimerInterval = (checkinData: IChildCheckinData, index:number) => {
+  const interval = setInterval(() => {
+      if(!checkinData.arrivalTime){
+        clearInterval(interval);
+        return;
+      }
+      const diffMS =  (addMinutes(checkinData.arrivalTime, 2).valueOf() || 0) - new Date().valueOf();
+      const diffDate = new Date(diffMS);
+      diffDate.setHours(0);
+      const remaining = diffDate.toLocaleTimeString().substring(3);
+      resetEnabledTimespans.value[index] = diffDate.getMinutes() > 2 ? "00:00" : remaining;
+      if(remaining === "00:00") {
+        clearInterval(interval);
+      }
+    }, 1000);
+}
+
 const parseChildren = (children: IChild[]): IChildCheckinData[] => {
   const midnight = getMidnight();
-  return children.map((child) => {
+  return children.map((child, index) => {
+    resetEnabledTimespans.value.push("[berechne ...]");
     const lastHistoryElement = child.checkinHistory.at(-1);
     if (lastHistoryElement?.arrivalTime) {
       if (lastHistoryElement.arrivalTime > midnight) {
+        setupTimerInterval(lastHistoryElement, index);
         return lastHistoryElement;
       }
     }
@@ -189,6 +209,8 @@ const showPickedUpChildren = ref(user.isParent);
 const checkinButtonDisabled = ref(false);
 const childrenFiltered: Ref<IChildCheckinData[]> = ref([]);
 const checkIns: Ref<ICheckinProps> = ref({ date: new Date(), children: [] });
+const resetEnabledTimespans: Ref<string[]> = ref([]);
+
 const filter = computed(() => {
   childrenFiltered.value = checkIns.value.children.filter(
     (child) => showPickedUpChildren.value || !child.pickupTime
@@ -220,10 +242,6 @@ const filter = computed(() => {
   return arrivedChildren.concat(notArrivedYetChildren).concat(pickedUpChildren);
 });
 
-const resetPickupDisabled = (child: IChildCheckinData) => {
-  return child.pickupTime && child.arrivalTime && child.pickupTime > addMinutes(child.arrivalTime, 15)
-}
-
 const sortByTruthy = (a: any, b: any, mod?: number) => {
   if (a && b) {
     return 0;
@@ -238,21 +256,22 @@ const sortAlphabetical = (a: string, b: string) => {
   return a > b ? 1 : -1;
 };
 
-const toggleCheckin = async (child: IChildCheckinData) => {
+const toggleCheckin = async (checkinData: IChildCheckinData, index: number) => {
   checkinButtonDisabled.value = true;
-  if (child.checkedIn) {
-    child.checkedIn = false;
-    child.pickupTime = new Date();
+  if (checkinData.checkedIn) {
+    checkinData.checkedIn = false;
+    checkinData.pickupTime = new Date();
+    setupTimerInterval(checkinData, index);
   } else {
-    child.checkedIn = true;
-    child.arrivalTime = new Date();
-    child.pickupTime = undefined;
+    checkinData.checkedIn = true;
+    checkinData.arrivalTime = new Date();
+    checkinData.pickupTime = undefined;
   }
   try {
-    await store.updateCheckin(child);
+    await store.updateCheckin(checkinData);
   }
   finally {
-    checkinButtonDisabled.value = true;
+    checkinButtonDisabled.value = false;
   }
 };
 
@@ -307,7 +326,10 @@ const reset = async (child: IChildCheckinData, fullReset: boolean = true) => {
     child.arrivalTime = undefined;
     child.checkedIn = false;
   }
-  await store.updateCheckin(child, true);
+  else {
+    child.checkedIn = true;
+  }
+  await store.updateCheckin(child, true, fullReset);
 };
 
 const checkinClass = (child: IChildCheckinData) => {
