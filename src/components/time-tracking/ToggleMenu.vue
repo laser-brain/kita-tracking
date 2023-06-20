@@ -62,6 +62,9 @@
         </div>
       </v-list>
       <v-label v-else>Keine Daten erfasst</v-label>
+      <v-btn class="add-entry" color="teal-darken-4" @click="addEntry"
+        >Neuen Eintrag erstellen</v-btn
+      >
     </v-card>
   </v-dialog>
 </template>
@@ -115,6 +118,15 @@ const finalize = async () => {
   dialog.value = false;
   emit("finalize");
 };
+
+const addEntry = () => {
+  const emptyData: ITrackingEntry = {
+    startTime: new Date(),
+    endTime: new Date(),
+    running: false
+  };
+  store.trackedSegments.push(emptyData);
+};
 </script>
 <style lang="scss">
 .deleted {
@@ -143,5 +155,11 @@ const finalize = async () => {
   input {
     font-size: 1.5em;
   }
+}
+
+.add-entry {
+  position: absolute;
+  bottom: 32px;
+  right: 32px;
 }
 </style>
