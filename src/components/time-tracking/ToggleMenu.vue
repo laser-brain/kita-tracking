@@ -52,14 +52,6 @@
             ></edit-tracking-entry>
           </div>
         </v-list-group>
-        <div class="close">
-          <v-btn
-            color="teal-darken-4"
-            prepend-icon="mdi-close"
-            @click="finalize"
-            >Schliessen</v-btn
-          >
-        </div>
       </v-list>
       <v-label v-else>Keine Daten erfasst</v-label>
       <v-btn class="add-entry" color="teal-darken-4" @click="addEntry"
