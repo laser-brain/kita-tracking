@@ -42,7 +42,7 @@
           />
         </template>
         <div
-          v-for="date in Object.keys(grouped[employee])"
+          v-for="date in orderedListByDate(grouped, employee)"
           :key="date"
           class="element"
         >
@@ -181,6 +181,13 @@ const getAll = (employee: string) => {
 
   return result;
 };
+
+const orderedListByDate = (grouped: IGroupedByEmployee, employee: string) => {
+  return Object.keys(grouped[employee])
+    .map(dateString => { return { dateString, date: new Date(dateString)};})
+    .sort((a, b) => a.date < b.date ? -1 : 1)
+    .map(o => o.dateString);
+}
 
 const store = useTracker();
 const trackers: Ref<ITrackingDataDocument[] | undefined> = ref();
