@@ -19,7 +19,7 @@
         >Zeiterfassung</router-link
       >
       <router-link
-        v-if="store.isAdmin"
+        v-if="store.isEducator"
         to="/tracking/overview"
         @click.native="closeDialog"
         >Alle Daten</router-link

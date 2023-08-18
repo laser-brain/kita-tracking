@@ -68,6 +68,7 @@ import ProgressOverlay from "@/components/ProgressOverlay.vue";
 import { updateDateFromString, updateTimeFromString } from "@/business/utility";
 import { ITrackingDataDocument } from "@/database/documents";
 import useTracker from "@/stores/tracker-store";
+import useUsers from "@/stores/user-store";
 import { ref, Ref, onMounted, computed } from "vue";
 
 interface IGroupedByEmployee {
@@ -80,6 +81,8 @@ interface IGroupedByDate {
 interface ITrackingDataDocumentExt extends ITrackingDataDocument {
   accumulated?: Date;
 }
+
+const user = useUsers();
 
 const showLoader = ref(true);
 
@@ -95,7 +98,8 @@ const filter = async () => {
   showLoader.value = true;
   trackers.value = await store.loadTrackingOverview(
     filterDateFrom,
-    filterDateTo
+    filterDateTo,
+    user.isAdmin ? "" : user.username
   );
   showLoader.value = false;
 };
@@ -216,8 +220,9 @@ const grouped: Ref<IGroupedByEmployee> = computed(() => {
 
   return result;
 });
+
 onMounted(async () => {
-  trackers.value = await store.loadTrackingOverview(new Date(0));
+  trackers.value = await store.loadTrackingOverview(new Date(0), undefined, user.isAdmin ? "" : user.username);
   showLoader.value = false;
 });
 </script>

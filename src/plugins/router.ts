@@ -69,7 +69,6 @@ const routes: RouteRecordRaw[] = [
     component: TrackerOverview,
     meta: {
       requiresAuth: true,
-      requiresAdmin: true,
     },
   },
   {
