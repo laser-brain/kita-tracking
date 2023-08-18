@@ -113,8 +113,8 @@ const finalize = async () => {
 
 const addEntry = () => {
   const emptyData: ITrackingEntry = {
-    startTime: new Date(),
-    endTime: new Date(),
+    startTime: new Date(selectedDate.value),
+    endTime: new Date(selectedDate.value),
     running: false
   };
   store.trackedSegments.push(emptyData);
