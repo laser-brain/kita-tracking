@@ -127,7 +127,7 @@ const filterThisMonth = async () => {
 const filterWorkYear = async () => {
   const startOfWorkYear = new Date();
   const month = startOfWorkYear.getMonth();
-  if (month < 8) {
+  if (month < 7) {
     startOfWorkYear.setFullYear(startOfWorkYear.getFullYear() - 1);
   }
   startOfWorkYear.setMonth(7);
@@ -150,15 +150,18 @@ const getTotal = (data: ITrackingDataDocumentExt[]) => {
       );
 
       const offset = new Date(0).getTimezoneOffset() / 60;
-      durationDateObject.setHours(durationDateObject.getHours() - offset);
       if (!prev.accumulated) {
-        prev.accumulated = new Date(0, offset, 0);
+        prev.accumulated = new Date(0);
+        prev.accumulated.setHours(prev.accumulated.getHours() + offset)
       }
 
+      const newValue = prev.accumulated;
+      newValue.setHours(prev.accumulated.getHours() + durationDateObject.getHours())
+      newValue.setMinutes(prev.accumulated.getMinutes() + durationDateObject.getMinutes())
+      newValue.setSeconds(prev.accumulated.getSeconds() + durationDateObject.getSeconds())
+
       return {
-        accumulated: new Date(
-          prev.accumulated.valueOf() + durationDateObject.valueOf()
-        ),
+        accumulated: newValue,
         startTime: new Date(0),
         employee: "",
         running: false,
@@ -171,6 +174,11 @@ const getTotal = (data: ITrackingDataDocumentExt[]) => {
     }
   );
 
+  if(result.accumulated && result.accumulated > new Date(1970, 0, 2)) {
+    const diffTime = Math.abs(result.accumulated.valueOf() - new Date(1970, 0, 2).valueOf());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return `${diffDays * 24 + result.accumulated.getHours()}:${result.accumulated.getMinutes().toString().padStart(2, "0")}:${result.accumulated.getSeconds().toString().padStart(2, "0")}`;
+  }
   return result.accumulated?.toLocaleTimeString();
 };
 
