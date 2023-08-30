@@ -70,9 +70,11 @@
   </v-dialog>
 </template>
 <script setup lang="ts">
+import { getMidnight } from "@/business/utility";
 import EditTrackingEntry from "./EditTrackingEntry.vue";
 import useTracking, { ITrackingEntry } from "@/stores/tracker-store";
 import useUsers from "@/stores/user-store";
+import { addDays } from "date-fns";
 import { ref, Ref, onMounted, onUnmounted } from "vue";
 
 const store = useTracking();
@@ -106,9 +108,18 @@ const onSelectedDateChanged = async (e: Event) => {
 };
 
 const loadEntries = async () => {
-  const from = new Date(selectedDate.value);
+  let from = new Date(selectedDate.value);
+  if(!user.isAdmin) {
+    const minDate = addDays(getMidnight(new Date()), -14);
+    if(from < minDate) {
+      from = minDate;
+      selectedDate.value = formatDate(from);
+    }
+  }
+
   const to = new Date(selectedDate.value);
-  to.setDate(from.getDate() + 1);
+  to.setDate(addDays(from, 1).getDate());
+
   store.trackedSegments = await store.loadTrackingOverview(
     from,
     to,
