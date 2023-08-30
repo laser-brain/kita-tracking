@@ -257,6 +257,7 @@ const init = async () => {
   flex-direction: row;
   justify-content: space-evenly;
   flex-wrap: wrap;
+  width: 100%;
 }
 .summary,
 .filter {
