@@ -1,4 +1,9 @@
 <template>
+  <div class="info" v-if="user.isAdmin && user.username !== employee">
+    <v-icon color="error" icon="mdi-alert-outline"></v-icon>
+    <span>Eintrag bearbeiten für Mitarbeiter:in <br />{{ employee }}</span>
+    <v-icon color="error" icon="mdi-alert-outline"></v-icon>
+  </div>
   <div class="inputs">
     <v-text-field
       class="time"
@@ -17,7 +22,11 @@
     />
   </div>
   <div class="buttons">
-    <v-btn @click="save" prepend-icon="mdi-floppy" color="teal-darken-4"
+    <v-btn
+      v-show="!deleted"
+      @click="save"
+      prepend-icon="mdi-floppy"
+      color="teal-darken-4"
       >Speichern</v-btn
     >
     <v-btn
@@ -39,12 +48,14 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import useTracking from "@/stores/tracker-store";
+import useUsers from "@/stores/user-store";
 import { updateTimeFromString } from "@/business/utility";
-const props = defineProps<{ startTime: Date; endTime: Date; index: number }>();
+const props = defineProps<{ employee: string; startTime: Date; endTime: Date; index: number }>();
 const startTimeString = ref(props.startTime.toLocaleTimeString());
 const endTimeString = ref(props.endTime.toLocaleTimeString());
 
 const store = useTracking();
+const user = useUsers();
 const deleted = ref(false);
 
 const save = async () => {
@@ -75,7 +86,7 @@ const save = async () => {
       new Date(0).getTimezoneOffset() * 60 * 1000
   ).toLocaleTimeString();
 
-  await store.saveTrackingData(item);
+  await store.saveTrackingData(item, props.employee);
 
   startTimeString.value = item.startTime.toLocaleTimeString();
   endTimeString.value = item.endTime.toLocaleTimeString();
@@ -105,12 +116,21 @@ const removeEntry = () => {
 };
 </script>
 <style scoped lang="scss">
+.info,
 .buttons,
 .inputs {
   display: flex;
   justify-content: space-around;
   align-items: center;
   padding-bottom: 1em;
+}
+
+.info {
+  border: 2px dotted red;
+  padding-bottom: 0;
+  span {
+    margin: 0 1em;
+  }
 }
 
 .time {

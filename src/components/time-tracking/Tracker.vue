@@ -6,10 +6,6 @@
       <span class="currentSegment">{{ currentSegmentFormatted }}</span>
     </div>
     <div class="controls">
-      <ToggleMenu
-        :data="store.trackedSegments"
-        @finalize="store.destroyDeletedItems"
-      />
       <PlayButton :running="runningTracker ? true : false" @click="toggle" />
     </div>
   </div>
@@ -18,7 +14,6 @@
 <script setup lang="ts">
 import { computed, Ref, ref, onMounted } from "vue";
 import PlayButton from "./PlayButton.vue";
-import ToggleMenu from "./ToggleMenu.vue";
 import useTracking, { ITrackingEntry } from "@/stores/tracker-store";
 import { updateTimeFromString } from "@/business/utility";
 

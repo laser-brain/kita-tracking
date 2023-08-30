@@ -28,6 +28,7 @@
       <v-btn class="element" @click="filterThisMonth">Diesen Monat</v-btn>
       <v-btn class="element" @click="filterWorkYear">Dieses Kita-Jahr</v-btn>
     </div>
+    <ToggleMenu @finalize="init" />
     <v-list>
       <progress-overlay :show="showLoader" />
       <v-list-group
@@ -70,6 +71,7 @@ import { ITrackingDataDocument } from "@/database/documents";
 import useTracker from "@/stores/tracker-store";
 import useUsers from "@/stores/user-store";
 import { ref, Ref, onMounted, computed } from "vue";
+import ToggleMenu from "./ToggleMenu.vue";
 
 interface IGroupedByEmployee {
   [key: string]: IGroupedByDate;
@@ -230,9 +232,13 @@ const grouped: Ref<IGroupedByEmployee> = computed(() => {
 });
 
 onMounted(async () => {
-  trackers.value = await store.loadTrackingOverview(new Date(0), undefined, user.isAdmin ? "" : user.username);
+  await init();
   showLoader.value = false;
 });
+
+const init = async () => {
+  trackers.value = await store.loadTrackingOverview(new Date(0), undefined, user.isAdmin ? "" : user.username);
+}
 </script>
 <style scoped lang="scss">
 .container {

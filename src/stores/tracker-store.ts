@@ -42,18 +42,21 @@ const trackingStore = defineStore("tracking", () => {
     return data;
   };
 
-  const loadTrackingData = async () => {
+  const loadTrackingData = async (employee: string = "") => {
     const data = await getTrackingData(
       await dbStore.getDbUser(),
-      userStore.username,
+      employee || userStore.username,
       getMidnight()
     );
     trackedSegments.value = data;
   };
 
-  const saveTrackingData = async (entry: ITrackingEntry) => {
+  const saveTrackingData = async (
+    entry: ITrackingEntry,
+    employee: string = ""
+  ) => {
     const id = await addTrackingData(await dbStore.getDbUser(), {
-      employee: userStore.username,
+      employee: employee || userStore.username,
       ...entry,
     });
     if (id) {

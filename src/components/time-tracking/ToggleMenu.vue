@@ -18,6 +18,14 @@
         </v-btn>
       </v-toolbar>
       <v-divider></v-divider>
+      <div v-if="user.isAdmin">
+        <v-select
+          label="Mitarbeiter auswählen"
+          :items="employees"
+          v-model="selectedEmployee"
+          @update:model-value="loadEntries"
+        />
+      </div>
       <div class="selectDate">
         <input
           type="date"
@@ -46,6 +54,7 @@
           </template>
           <div :class="`${item.deleted ? 'deleted' : 'available'}`">
             <edit-tracking-entry
+              :employee="selectedEmployee"
               :index="index"
               :start-time="item.startTime"
               :endTime="(item.endTime as Date)"
@@ -64,10 +73,13 @@
 import EditTrackingEntry from "./EditTrackingEntry.vue";
 import useTracking, { ITrackingEntry } from "@/stores/tracker-store";
 import useUsers from "@/stores/user-store";
-import { ref, Ref, onMounted } from "vue";
+import { ref, Ref, onMounted, onUnmounted } from "vue";
 
 const store = useTracking();
 const user = useUsers();
+
+const employees: Ref<string[]> = ref([]);
+const selectedEmployee: Ref<string> = ref(user.username);
 
 const formatDate = (date: Date) => {
   return `${date.getFullYear()}-${(date.getMonth() + 1)
@@ -79,6 +91,13 @@ const selectedDate = ref(formatDate(new Date()));
 
 onMounted(async () => {
   await loadEntries();
+  if(user.isAdmin) {
+    employees.value = (await store.employees()).map(e => e.name);
+  }
+});
+
+onUnmounted(() => {
+  employees.value = [];
 });
 
 const onSelectedDateChanged = async (e: Event) => {
@@ -93,7 +112,7 @@ const loadEntries = async () => {
   store.trackedSegments = await store.loadTrackingOverview(
     from,
     to,
-    user.username
+    selectedEmployee.value
   );
 };
 
@@ -105,9 +124,11 @@ const emit = defineEmits<{
 const dialog = ref(false);
 
 const finalize = async () => {
+  await store.destroyDeletedItems();
   selectedDate.value = formatDate(new Date());
   await loadEntries();
   dialog.value = false;
+  selectedEmployee.value = user.username;
   emit("finalize");
 };
 
