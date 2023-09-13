@@ -39,7 +39,11 @@ export const updateTimeFromString = (referenceDate: Date, value: string) => {
   return referenceDate;
 };
 
-export const updateDateFromString = (referenceDate: Date, value: string) => {
+export const updateDateFromString = (
+  referenceDate: Date,
+  value: string,
+  time?: string
+) => {
   if (!value) {
     return undefined;
   }
@@ -48,13 +52,12 @@ export const updateDateFromString = (referenceDate: Date, value: string) => {
     throw new Error("Invalid date format");
   }
 
-  referenceDate.setDate(parseInt(timeParts[0]));
-  referenceDate.setMonth(parseInt(timeParts[1]) - 1);
   const year = timeParts[2];
-
   referenceDate.setFullYear(parseInt(year.length === 2 ? `20${year}` : year));
+  referenceDate.setMonth(parseInt(timeParts[1]) - 1);
+  referenceDate.setDate(parseInt(timeParts[0]));
 
-  return updateTimeFromString(referenceDate, "00:00:00");
+  return updateTimeFromString(referenceDate, time || "00:00:00");
 };
 
 export const sumHours = (requirements: ITimeRequirement[]) => {

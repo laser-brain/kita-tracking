@@ -92,7 +92,8 @@ const dateFrom = ref("");
 const dateTo = ref("");
 const filter = async () => {
   const filterDateFrom = updateDateFromString(new Date(), dateFrom.value);
-  const filterDateTo = updateDateFromString(new Date(), dateTo.value);
+  const filterDateTo = updateDateFromString(new Date(), dateTo.value, "23:59:59");
+
   if (filterDateTo) {
     filterDateTo.setDate(filterDateTo.getDate() + 1);
   }
